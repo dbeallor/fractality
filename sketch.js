@@ -703,8 +703,7 @@ function nextWindow(){
 }
 
 function doneTutorial(){
-	newFractal();
-	windows[6].open();
+	tutorial.close();
 }
 
 // =======================================================================================================
