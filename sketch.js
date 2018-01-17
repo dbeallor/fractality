@@ -264,7 +264,7 @@ function initializeMenuBar(){
 
 	menu_bar.addFolder("Fractality");
 	menu_bar.addButton("About Fractality", "", null);
-	menu_bar.addButton("Welcome Screen", "W", function(){closeWindows(); intro.open();});
+	menu_bar.addButton("Welcome Screen", "W", function(){closeWindows(); windows[6].open();});
 	menu_bar.addButton("Sample Gallery", "E", openGallery);
 
 	menu_bar.addFolder("File");
