@@ -82,7 +82,10 @@ function Intro(){
 	}
 
 	this.onKeyPress = function(){
-		null;
+		if (this.visible){
+			if (keyCode == ESCAPE)
+				this.close();
+		}
 	}
 
 	this.onClick = function(){

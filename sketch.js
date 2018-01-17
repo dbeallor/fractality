@@ -24,6 +24,8 @@ var samples = ["sierpinski", "rhombi5", "snowflake", "brushstrokes", "fingerprin
 
 var fractal;
 var ready;
+var loading_animation;
+var start_time;
 var fb_share_button;
 
 // =======================================================================================================
@@ -72,6 +74,7 @@ function setup() {
 			for (var i = 0; i < samples.length; i++)
 				gallery_images[i] = loadImage("snapshots/" + samples[i] + ".png", function() {images_loaded += 1});
 
+		start_time = -1;
 		loading_animation = new LoadingAnimation();
 
 		fb_share_button.style.width = 30;
@@ -128,39 +131,43 @@ function galleryDims(){
 // =======================================================================================================
 function draw() {
 	if (!detectMobile()){
-		if (images_loaded == samples.length && millis() > 2500){
-			fb_share_button.style.display = "block";
-			styleCursor();
-			background(color(windows[3].color_pickers[0].value()));
+		if (images_loaded == samples.length){
+			if (start_time < 0)
+				start_time = millis();
+			if (millis() - start_time > 1500){
+				fb_share_button.style.display = "block";
+				styleCursor();
+				background(color(windows[3].color_pickers[0].value()));
 
-			if (fractal.creating_seed)
-				grid.show();
+				if (fractal.creating_seed)
+					grid.show();
 
-			fractal.show();
+				fractal.show();
 
-			if (fractal.fractalizing)
-				load_bar.show();
+				if (fractal.fractalizing)
+					load_bar.show();
 
-			dragTranslateShape();
-			dragRotateShape();
+				dragTranslateShape();
+				dragRotateShape();
 
-			if(!noOpenWindows())
-				showWindows();
+				if(!noOpenWindows())
+					showWindows();
 
-			menu_bar.show();
+				menu_bar.show();
 
-			tutorial.show();
-			
-			if (!mouseIsPressed && !keyIsPressed && !fractal.fractalizing)
-				ready = true;
+				tutorial.show();
+				
+				if (!mouseIsPressed && !keyIsPressed && !fractal.fractalizing)
+					ready = true;
 
-			// fill(255);
-			// text(mouseX + ", " + mouseY, 50, 50);
-		}
-		else{
-			// fb_share_button.style.display = "none";
-			fb_share_button.visible = false;
-			loading_animation.show();
+				// fill(255);
+				// text(mouseX + ", " + mouseY, 50, 50);
+			}
+			else{
+				// fb_share_button.style.display = "none";
+				fb_share_button.visible = false;
+				loading_animation.show();
+			}
 		}
 	}
 	else

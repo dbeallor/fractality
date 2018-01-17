@@ -1,11 +1,12 @@
 function FractalNode(x, y){
 	this.pos = createVector(x, y);
 	this.r = 10;
+	this.fill = color(30);
 
 	this.show = function(){
 		fractal.graphics.push();
 			fractal.graphics.noStroke();
-			fractal.graphics.fill(30);
+			fractal.graphics.fill(this.fill);
 			fractal.graphics.ellipse(this.pos.x, this.pos.y, this.r, this.r);
 		fractal.graphics.pop();
 	}
@@ -21,5 +22,9 @@ function FractalNode(x, y){
 
 	this.setSize = function(s){
 		this.r = s;
+	}
+
+	this.setFill = function(f){
+		this.fill = f;
 	}
 }
