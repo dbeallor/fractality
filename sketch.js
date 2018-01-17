@@ -314,13 +314,13 @@ function initializeMenuBar(){
 
 function refreshMenuBarButtons(){
 	if (fractal.creating_seed)
-		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);
+		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);
 	else if (fractal.creating_generator)
-		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "Skip Edge", "Hide Edge", "Undo", "Tutorial"]);
+		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "New Fractal", "Open File...", "Skip Edge", "Hide Edge", "Undo", "Tutorial"]);
 	else if (fractal.viewing_seed)
-		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
+		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
 	else
-		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "Level Up", "Max Level Up", "Timed Level Up", "Download as txt file...", 
+		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "New Fractal", "Open File...", "Level Up", "Max Level Up", "Timed Level Up", "Download as txt file...", 
 									"Capture Screenshot...", "Redraw Seed", "Customize Color Scheme",   "Zoom In", "Zoom Out", "Center", "Rotate Left 90°", "Rotate Right 90°", "View Seed", 
 									"Drag Mode Rotate", "Drag Mode Translate", "Zoom Mode Mouse Centered", "Zoom Mode Fractal Centered", "Tutorial"]);
 }
