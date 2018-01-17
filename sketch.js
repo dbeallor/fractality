@@ -24,6 +24,7 @@ var samples = ["sierpinski", "rhombi5", "snowflake", "brushstrokes", "fingerprin
 
 var fractal;
 var ready;
+var fb_share_button;
 
 // =======================================================================================================
 // ==PRELOAD AND SETUP
@@ -33,6 +34,9 @@ function preload(){
 		intro_image = loadImage("intro.png");
 		load_icon = loadImage("load_icon.png");
 	}
+
+	fb_share_button = document.getElementById("fb_share_button");
+	fb_share_button.style.display = "none";
 }
 
 function setup() {
@@ -69,6 +73,13 @@ function setup() {
 				gallery_images[i] = loadImage("snapshots/" + samples[i] + ".png", function() {images_loaded += 1});
 
 		loading_animation = new LoadingAnimation();
+
+		fb_share_button.style.width = 30;
+		fb_share_button.style.height = 10;
+		fb_share_button.style.position = "absolute";
+	    fb_share_button.style.right = "85px";
+	    fb_share_button.style.top = "0px";
+	    // fb_share_button.style.display = "none";
 	}	
 }
 
@@ -118,6 +129,7 @@ function galleryDims(){
 function draw() {
 	if (!detectMobile()){
 		if (images_loaded == samples.length && millis() > 2500){
+			fb_share_button.style.display = "block";
 			styleCursor();
 			background(color(windows[3].color_pickers[0].value()));
 
@@ -145,8 +157,11 @@ function draw() {
 			// fill(255);
 			// text(mouseX + ", " + mouseY, 50, 50);
 		}
-		else
+		else{
+			// fb_share_button.style.display = "none";
+			fb_share_button.visible = false;
 			loading_animation.show();
+		}
 	}
 	else
 		showMobileMessage();
@@ -249,7 +264,8 @@ function initializeMenuBar(){
 
 	menu_bar.addFolder("Fractality");
 	menu_bar.addButton("About Fractality", "", null);
-	menu_bar.addButton("Sample Gallery", "W", openGallery);
+	menu_bar.addButton("Welcome Screen", "W", function(){closeWindows(); intro.open();});
+	menu_bar.addButton("Sample Gallery", "E", openGallery);
 
 	menu_bar.addFolder("File");
 	menu_bar.addButton("New Fractal", "N", openNewFractalWarningBox);
@@ -298,13 +314,13 @@ function initializeMenuBar(){
 
 function refreshMenuBarButtons(){
 	if (fractal.creating_seed)
-		menu_bar.enableButtons(["About Fractality", "Sample Gallery", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);
+		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);
 	else if (fractal.creating_generator)
-		menu_bar.enableButtons(["About Fractality", "Sample Gallery", "New Fractal", "Open File...", "Skip Edge", "Hide Edge", "Undo", "Tutorial"]);
+		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "Skip Edge", "Hide Edge", "Undo", "Tutorial"]);
 	else if (fractal.viewing_seed)
-		menu_bar.enableButtons(["About Fractality", "Sample Gallery", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
+		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
 	else
-		menu_bar.enableButtons(["About Fractality", "New Fractal", "Open File...", "Sample Gallery", "Level Up", "Max Level Up", "Timed Level Up", "Download as txt file...", 
+		menu_bar.enableButtons(["About Fractality", "Welcome", "Sample Gallery", "New Fractal", "Open File...", "Level Up", "Max Level Up", "Timed Level Up", "Download as txt file...", 
 									"Capture Screenshot...", "Redraw Seed", "Customize Color Scheme",   "Zoom In", "Zoom Out", "Center", "Rotate Left 90°", "Rotate Right 90°", "View Seed", 
 									"Drag Mode Rotate", "Drag Mode Translate", "Zoom Mode Mouse Centered", "Zoom Mode Fractal Centered", "Tutorial"]);
 }
