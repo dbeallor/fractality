@@ -2,7 +2,7 @@ function MenuBar(){
 	this.pos = createVector(0, 0);
 	this.folders = [];
 	this.width = width;
-	this.height = 20;
+	this.height = 22;
 	this.fill = color(220);
 	this.bounds = [this.pos.x, this.pos.x + this.width, 0, this.height];
 	this.folders = [];
