@@ -204,12 +204,13 @@ function Fractal(nodes, edges){
 
 		for (var i = 0; i < this.seed.nodes.length; i++){
 			if (i == this.current_edge || i == this.current_edge - 1){
-				// this.seed.nodes[i].setSize(10);
+				this.seed.nodes[i].setSize(15);
 				this.seed.nodes[i].setFill(color(243,53,53));
 			}
 			this.seed.nodes[i].show();
-			// this.seed.nodes[i].setSize(10);
+			this.seed.nodes[i].setSize(10);
 			this.seed.nodes[i].setFill(color(30));
+			this.seed.nodes[i].show();
 		}
 	}
 

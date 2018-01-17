@@ -18,6 +18,7 @@ var zoom_mode;
 // Windows
 var windows;
 var gallery_images = [];
+var images_loaded = 0;
 var samples = ["sierpinski", "rhombi5", "snowflake", "brushstrokes", "fingerprint", "parallelogram", "spiral2",  "pinwheel",  "rhombi8", 
 				"honeycomb2", "spiral8", "shield", "spiral17", "honeycomb3", "pinwheel3", "jellyfish", "snake",  "spiral16", "rhombi2",  "spiral7", "waves", 
 				"parallelogram2", "spiral6"];
@@ -25,7 +26,7 @@ var samples = ["sierpinski", "rhombi5", "snowflake", "brushstrokes", "fingerprin
 var fractal;
 var ready;
 var loading_animation;
-var start_time;
+var start_time = -1;
 var fb_share_button;
 
 // =======================================================================================================
@@ -74,7 +75,6 @@ function setup() {
 			for (var i = 0; i < samples.length; i++)
 				gallery_images[i] = loadImage("snapshots/" + samples[i] + ".png", function() {images_loaded += 1});
 
-		start_time = -1;
 		loading_animation = new LoadingAnimation();
 
 		fb_share_button.style.width = 30;
@@ -225,7 +225,8 @@ function mousePressed(){
 		if (menu_bar.folderIsOpen() < 0 && !noOpenWindows())
 			windowMousePressEvents()
 
-		tutorial.onClick();
+		if (tutorial.visible)
+			tutorial.onClick();
 
 		fractal.onClick();
 
@@ -482,12 +483,12 @@ function dragModeRotate(){
 }
 
 function rotateLeft90(){
-	refreshRotationCenter();
+	fractal.refreshRotationCenter();
 	fractal.rotate(-Math.PI / 2);
 }
 
 function rotateRight90(){
-	refreshRotationCenter();
+	fractal.refreshRotationCenter();
 	fractal.rotate(Math.PI / 2);
 }
 
