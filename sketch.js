@@ -309,7 +309,7 @@ function initializeMenuBar(){
 
 	menu_bar.initialize();
 
-	menu_bar.enableButtons(["About Fractality", "Sample Gallery", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);	
+	menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);	
 }
 
 function refreshMenuBarButtons(){
