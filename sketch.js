@@ -28,6 +28,7 @@ var ready;
 var loading_animation;
 var start_time = -1;
 var fb_share_button;
+var save_file_name;
 
 // =======================================================================================================
 // ==PRELOAD AND SETUP
@@ -238,6 +239,7 @@ function mousePressed(){
 
 function keyPressed(){
 	if (!detectMobile()){
+		menu_bar.onKeyPress();
 		if (noOpenWindows() && ready){
 			menu_bar.checkShortcuts();
 			ready = false;
