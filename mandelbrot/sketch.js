@@ -13,6 +13,7 @@ var windows;
 var ready;
 var refresh;
 var save_file_name;
+var reframe;
 
 function preload(){
 	background_image = loadImage("background.png");
@@ -49,6 +50,7 @@ function setup() {
 	initializeWindows();
 
 	refresh = false;
+	reframe = false;
 	refreshDrawing();
 
 	fb_share_button.style.width = 30;
@@ -74,11 +76,15 @@ function initializeWindows(){
 }
 
 function draw() {
-	if (refresh){
+	if (refresh || reframe){
 		canvas.style.cursor = "wait";
-		if (ready){
+		if (ready && refresh){
 			refresh = false;
 			refreshDrawing();
+		}
+		if (ready && reframe){
+			reframe = false;
+			refresh = true;
 		}
 	}
 
@@ -167,7 +173,7 @@ function mouseReleased() {
 		var h = abs(c2_y - c1_y);
 		var w = (3.0 / 2) * h;
 		zoom([center_x - w / 2, center_x + w / 2], [min(c1_y, c2_y), max(c1_y, c2_y)]);
-		refresh = true;
+		reframe = true;
 	}
 	ready = false;
 }
