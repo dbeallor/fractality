@@ -16,6 +16,9 @@ var save_file_name;
 
 function preload(){
 	background_image = loadImage("background.png");
+
+	fb_share_button = document.getElementById("fb_share_button");
+	fb_share_button.style.display = "none";
 }
 
 function setup() {
@@ -47,6 +50,13 @@ function setup() {
 
 	refresh = false;
 	refreshDrawing();
+
+	fb_share_button.style.width = 30;
+	fb_share_button.style.height = 10;
+	fb_share_button.style.position = "absolute";
+    fb_share_button.style.right = "70px";
+    fb_share_button.style.top = "1px";
+    fb_share_button.style.display = "block";
 
 	screen_bounds = [0, windowWidth, menu_bar.height, windowHeight];
 }

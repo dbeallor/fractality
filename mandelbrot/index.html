@@ -1,6 +1,17 @@
 <html>
 <head>
   <meta charset="UTF-8">
+
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+
+  <meta charset="UTF-8">
+  <meta property="og:url" content="http://fractality.me/mandelbrot/" />
+  <meta property="og:site_name" content="Fractality"/>
+  <meta property="og:title" content="Fractality Mandelbrot"/>
+  <meta property="og:description" content="Explore the depths of the chaotic Mandelbrot Set!"/>
+  <meta property="og:type" content="website">
+  <meta property="fb:app_id" content="1291568704278418">
+  <meta property="og:image" content="http://dbeallor.github.io/fractality/mandelbrot/preview.png">
   <script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
   <!-- uncomment lines below to include extra p5 libraries -->
   <script language="javascript" src="libraries/p5.dom.js"></script>
@@ -20,5 +31,16 @@
 </head>
 
 <body>
+  <div id="fb-root"></div>
+
+  <script>(function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.11&appId=1291568704278418';
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));</script>
+
+  <div class="fb-like" data-href="http://fractality.me/mandelbrot/" data-layout="button_count" data-action="like" data-size="small" data-show-faces="false" data-share="true"></div>
 </body>
 </html>
