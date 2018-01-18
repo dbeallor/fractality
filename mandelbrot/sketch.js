@@ -25,7 +25,7 @@ function setup() {
 	initializeMenuBar();
 
 	// graphics = createGraphics(2400, 1600);
-	graphics = createGraphics(900, 600);
+	graphics = createGraphics(1050, 700);
 	graphics.pixelDensity(1);
 
 	// var h = 1 * windowHeight;
@@ -41,7 +41,7 @@ function setup() {
 
 	save_file_name = '';
 
-	ready = false;
+	ready = true;
 
 	initializeWindows();
 
@@ -75,6 +75,7 @@ function draw() {
 	imageMode(CENTER);
 	var ratio = background_image.width / background_image.height;
 	image(background_image, windowWidth / 2, windowHeight / 2 + menu_bar.height / 2, (windowHeight - menu_bar.height) * ratio, windowHeight - menu_bar.height);
+	theaterMode();
 
 	drawFrame();
 
@@ -157,8 +158,8 @@ function mouseReleased() {
 		var w = (3.0 / 2) * h;
 		zoom([center_x - w / 2, center_x + w / 2], [min(c1_y, c2_y), max(c1_y, c2_y)]);
 		refresh = true;
-		ready = false;
 	}
+	ready = false;
 }
 
 function c_add(a, b){
@@ -178,7 +179,8 @@ function zoom(new_x_range, new_y_range){
 
 function keyPressed(){
 	menu_bar.onKeyPress();
-	menu_bar.checkShortcuts();
+	if (noOpenWindows())
+		menu_bar.checkShortcuts();
 	windowKeyEvents();
 }
 

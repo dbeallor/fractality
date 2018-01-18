@@ -276,6 +276,7 @@ function initializeMenuBar(){
 	menu_bar.addButton("About Fractality", "", null);
 	menu_bar.addButton("Welcome Screen", "W", function(){closeWindows(); windows[6].open();});
 	menu_bar.addButton("Sample Gallery", "E", openGallery);
+	menu_bar.addButton("Zoom In On the Mandelbrot Set!", "", function(){ window.location.href = 'http://fractality.me/mandelbrot' });
 
 	menu_bar.addFolder("File");
 	menu_bar.addButton("New Fractal", "N", openNewFractalWarningBox);
