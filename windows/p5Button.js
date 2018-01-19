@@ -3,7 +3,7 @@ function p5Button(label, x, y, width, height, listener){
 	this.pos = createVector(x, y);
 	this.width = width;
 	this.height = height;
-	this.fill = color(255);
+	this.fill = color(220);
 	this.highlight = color(74,119,235);
 	this.text_fill = color(0);
 	this.text_highlight = color(255);
@@ -14,6 +14,7 @@ function p5Button(label, x, y, width, height, listener){
 	this.show = function(){
 		if (this.visible){
 			push();
+				textSize(12);
 				if (this.mouseOver())
 					fill(this.highlight)
 				else

@@ -9,7 +9,7 @@ function ColorDialogBox(title, x, y, width, height){
 	this.color_pickers = [];
 
 	this.initialize = function(){
-		var colors = ["#FF0000", "#FF0001"];
+		var colors = ["#FF0001", "#FF0000"];
 		// Gradient color pickers
 		for (var i = 0; i < 2; i++){
 			this.color_pickers[i] = createInput();
@@ -45,6 +45,7 @@ function ColorDialogBox(title, x, y, width, height){
 			this.visible = false;
 			this.hideColorPickers();
 			refresh = true;
+			setTimeout(refreshDrawing, 50);
 			ready = false;
 		}
 	}

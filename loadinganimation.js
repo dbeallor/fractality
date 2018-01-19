@@ -8,9 +8,9 @@ function LoadingAnimation(){
 		push();
 			var d = pixelDensity();
 			var y_dim = windowHeight;
-			var x_dim = (intro_image.width * y_dim) / intro_image.height;
+			var x_dim = (loading_image.width * y_dim) / loading_image.height;
 			imageMode(CENTER);
-			image(intro_image, windowWidth / 2, windowHeight / 2, x_dim, y_dim);
+			image(loading_image, windowWidth / 2, windowHeight / 2, x_dim, y_dim);
 
 			resetMatrix();
 			translate(windowWidth / 2, windowHeight / 2 + windowHeight * 0.13);

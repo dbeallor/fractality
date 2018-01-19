@@ -3,8 +3,8 @@ function p5Window(title, x, y, width, height){
 	this.title = title;
 	this.width = width;
 	this.height = height;
-	this.fill = color(220);
-	this.accent = color(180);
+	this.fill = color(255);
+	this.accent = color(220);
 	this.header_height = constrain(this.height * 0.15, 20, 30);
 	this.bounds = [this.pos.x - this.width / 2, this.pos.x + this.width / 2, this.pos.y - this.height / 2, this.pos.y + this.height / 2];
 	this.exit_button = new ExitButton(this.pos.x + this.width / 2 - this.header_height / 2, this.pos.y - this.height / 2 + this.header_height / 2);

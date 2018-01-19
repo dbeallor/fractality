@@ -15,6 +15,7 @@ function SlideViewer(title, x, y, width, height, images, button_title, listener)
 	this.right_bounds = [this.pos.x + this.width * (1.0/3), this.bounds[1], this.bounds[2] + this.window.header_height, this.bounds[3] - this.window.header_height];
 	this.rect_alpha = 110;
 	this.window.addButton(button_title, this.pos.x, this.pos.y + this.height / 2 - this.window.header_height / 2, this.width * 0.05, this.window.header_height * 0.6, listener);
+	this.window.buttons[0].setFill(255);
 
 	this.show = function(){
 		if (this.visible){

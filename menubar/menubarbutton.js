@@ -22,6 +22,7 @@ function MenuBarButton(menu_bar, folder, label, shortcut, onClick, y){
 
 	this.show = function(){
 		push();
+			textSize(12);
 			this.mouseOver() ? this.highlight() : this.unhighlight();
 			resetMatrix();
 			fill(this.fill);

@@ -1,9 +1,9 @@
 function Intro(){
-	this.pos = createVector(grid.pos.x, grid.pos.y);
+	this.pos = createVector(center[0], center[1]);
 	this.title = "Welcome";
 	this.button_gap = 130;
-	this.button_offsetX = 193;
-	this.button_labels = ["Show Me Around", "Sample Gallery", "New Fractal", "Open Fractal"];
+	this.button_offsetX = 66;
+	this.button_labels = ["Show Me Around", "Jump Right In"];
 	this.button_height = 40;
 	this.button_width = -1;
 	var len;
@@ -21,12 +21,11 @@ function Intro(){
 		this.window = new p5Window(this.title, this.pos.x, this.pos.y, this.width, this.height);
 		this.button_offsetY = this.height * 0.03 - 30;
 		this.window.addButton(this.button_labels[0], this.pos.x - this.button_offsetX                          , this.pos.y + this.button_offsetY, this.button_width, this.button_height, startTutorial);
-		this.window.addButton(this.button_labels[1], this.pos.x - this.button_offsetX +     this.button_gap, this.pos.y + this.button_offsetY, this.button_width, this.button_height, openGallery);
-		this.window.addButton(this.button_labels[2], this.pos.x - this.button_offsetX + 2 * this.button_gap, this.pos.y + this.button_offsetY, this.button_width, this.button_height, closeWindows);
-		this.window.addButton(this.button_labels[3], this.pos.x - this.button_offsetX + 3 * this.button_gap, this.pos.y + this.button_offsetY, this.button_width, this.button_height, openLoadDialog);
+		this.window.addButton(this.button_labels[1], this.pos.x - this.button_offsetX +     this.button_gap, this.pos.y + this.button_offsetY, this.button_width, this.button_height, closeWindows);
 		this.window.exitable = false;
+		var ratio = ad.width / ad.height;
 		var h = this.height * 0.2;
-		var w = h * (3.0 / 2);
+		var w = h * ratio;
 		var x = this.pos.x;
 		var y = this.pos.y + (this.height - this.window.header_height) / 5;
 		this.ad_bounds = [x - w / 2, x + w / 2, y - h / 2, y + h / 2];
@@ -68,9 +67,9 @@ function Intro(){
 				textStyle(BOLD);
 				var x = this.pos.x;
 				var y = this.pos.y + this.button_offsetY - 60;
-				text("Fractality Studio", x, y);
+				text("Fractality Mandelbrot", x, y);
 				textSize(24);
-				text("Beta", x + 220, y - 20);
+				text("Beta", x + 270, y - 20);
 
 				this.showAd();
 			pop();
@@ -121,8 +120,9 @@ function Intro(){
 	}
 
 	this.showAd = function(){
+		var ratio = ad.width / ad.height;
 		var h = this.height * 0.2;
-		var w = h * (3.0 / 2);
+		var w = h * ratio;
 		var x = this.pos.x;
 		var y = this.pos.y + (this.height - this.window.header_height) / 5;
 		push();

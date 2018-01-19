@@ -9,6 +9,7 @@ var grid;
 var images_loaded = 0;
 
 var intro_image;
+var loading_image;
 var load_icon;
 
 // Zoom and drag
@@ -29,6 +30,8 @@ var loading_animation;
 var start_time = -1;
 var fb_share_button;
 var save_file_name;
+var mandelbrot;
+var ad;
 
 // =======================================================================================================
 // ==PRELOAD AND SETUP
@@ -36,7 +39,9 @@ var save_file_name;
 function preload(){
 	if (!detectMobile()){
 		intro_image = loadImage("intro.png");
+		loading_image = loadImage("intro.png");
 		load_icon = loadImage("load_icon.png");
+		ad = loadImage("ad.jpg");
 	}
 
 	fb_share_button = document.getElementById("fb_share_button");
@@ -78,6 +83,8 @@ function setup() {
 
 		loading_animation = new LoadingAnimation();
 
+		mandelbrot = false;
+
 		fb_share_button.style.width = 30;
 		fb_share_button.style.height = 10;
 		fb_share_button.style.position = "absolute";
@@ -106,8 +113,8 @@ function initializeWindows(){
 	color_dialog.initialize();
 	windows = append(windows, color_dialog);
 
-	var message = "Are you sure you want to start over?\nAll unsaved data will be lost.";
-	var new_fractal_warning_box = new WarningBox(grid.pos.x, grid.pos.y, 220, 120, message, newFractal, closeWindows);
+	var message = "Are you sure you want to leave?\nAll unsaved data will be lost.";
+	var new_fractal_warning_box = new WarningBox(grid.pos.x, grid.pos.y, 220, 120, message, leave, closeWindows);
 	windows = append(windows, new_fractal_warning_box);
 
 	var dims = galleryDims();
@@ -178,6 +185,8 @@ function draw() {
 function styleCursor(){
 	if (fractal.maxing_out || fractal.fractalizing)
 		canvas.style.cursor = 'wait';
+	else if (windows[6].visible && withinBounds(mouseX, mouseY, windows[6].ad_bounds))
+		canvas.style.cursor = 'pointer';
 	else if (onScreen() && noOpenWindows() && menu_bar.folderIsOpen() < 0 && drag_mode == 0 && fractal.idle())
 		canvas.style.cursor = 'move';
 	else 
@@ -276,10 +285,10 @@ function initializeMenuBar(){
 	menu_bar.addButton("About Fractality", "", null);
 	menu_bar.addButton("Welcome Screen", "W", function(){closeWindows(); windows[6].open();});
 	menu_bar.addButton("Sample Gallery", "E", openGallery);
-	menu_bar.addButton("Zoom In On the Mandelbrot Set!", "", function(){ window.location.href = 'http://fractality.me/mandelbrot' });
+	menu_bar.addButton("Explore the Depths of the Mandelbrot Set!", "", function(){mandelbrot = true; openNewFractalWarningBox();});
 
 	menu_bar.addFolder("File");
-	menu_bar.addButton("New Fractal", "N", openNewFractalWarningBox);
+
 	menu_bar.addButton("Open File...", "O", openLoadDialog);
 	menu_bar.addButton("Download as txt file...", "S", openSaveDialog);
 	menu_bar.addButton("Capture Screenshot...", "D", openScreenshotDialog);
@@ -302,8 +311,8 @@ function initializeMenuBar(){
 	menu_bar.addFolder("Fractalization");
 	menu_bar.addButton("Lock Seed", "enter", lockSeed);
 	menu_bar.addButton("Level Up", "enter", levelUp);
-	menu_bar.addButton("Max Level Up", "M", maxOut);
-	menu_bar.addButton("Timed Level Up", ", ", null);
+	// menu_bar.addButton("Max Level Up", "M", maxOut);
+	// menu_bar.addButton("Timed Level Up", ", ", null);
 	menu_bar.addButton("Customize Color Scheme", "C", openColorDialog);
 
 	menu_bar.addFolder("Tools");
@@ -320,20 +329,21 @@ function initializeMenuBar(){
 
 	menu_bar.initialize();
 
-	menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "Zoom In On the Mandelbrot Set!", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);	
+	menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);	
 }
 
 function refreshMenuBarButtons(){
 	if (fractal.creating_seed)
-		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "Zoom In On the Mandelbrot Set!", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);
+		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);
 	else if (fractal.creating_generator)
-		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "Zoom In On the Mandelbrot Set!", "New Fractal", "Open File...", "Skip Edge", "Hide Edge", "Undo", "Tutorial"]);
+		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Skip Edge", "Hide Edge", "Undo", "Tutorial"]);
 	else if (fractal.viewing_seed)
-		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "Zoom In On the Mandelbrot Set!", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
+		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
 	else
-		menu_bar.enableButtons(["About Fractality", "Welcome Screen", "Sample Gallery", "Zoom In On the Mandelbrot Set!", "New Fractal", "Open File...", "Level Up", "Max Level Up", "Timed Level Up", "Download as txt file...", 
-									"Capture Screenshot...", "Redraw Seed", "Customize Color Scheme",   "Zoom In", "Zoom Out", "Center", "Rotate Left 90°", "Rotate Right 90°", "View Seed", 
-									"Drag Mode Rotate", "Drag Mode Translate", "Zoom Mode Mouse Centered", "Zoom Mode Fractal Centered", "Tutorial"]);
+		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Level Up", 
+									// "Max Level Up", "Timed Level Up", 
+									"Download as txt file...", "Capture Screenshot...", "Redraw Seed", "Customize Color Scheme",   "Zoom In", "Zoom Out", "Center", "Rotate Left 90°", 
+									"Rotate Right 90°", "View Seed", "Drag Mode Rotate", "Drag Mode Translate", "Zoom Mode Mouse Centered", "Zoom Mode Fractal Centered", "Tutorial"]);
 }
 
 function mouseOnMenuBar(){
@@ -356,7 +366,9 @@ function undo(){
 		fractal.undoGenerator();
 }
 
-function newFractal(){
+function leave(){
+	if (mandelbrot)
+		window.location.href = 'http://fractality.me/mandelbrot'
 	setup();
 	closeWindows();
 }
@@ -425,8 +437,12 @@ function windowKeypressEvents(){
 }
 
 function openNewFractalWarningBox(){
-	if (noOpenWindows())
+	if (!fractal.creating_seed){
+		closeWindows();
 		windows[4].open();
+	}
+	else
+		leave();
 }
 
 function openGallery(){
@@ -721,7 +737,7 @@ function colorMap(x){
 // ==Tutorial
 // =======================================================================================================
 function startTutorial(){
-	newFractal();
+	leave();
 	tutorial.open();
 }
 

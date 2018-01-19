@@ -49,6 +49,7 @@ function MenuBarFolder(menu_bar, label){
 
 	this.show = function(){
 		push();
+			textSize(12);
 			noStroke();
 			fill(this.fill);
 			rect(this.pos.x, this.pos.y, this.width, this.height);

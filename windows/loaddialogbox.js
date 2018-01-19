@@ -15,6 +15,7 @@ function LoadDialogBox(title, x, y, width, height, fileHandler, dragOverListener
 	this.initialize = function(){
 		this.upload_button = createFileInput(fileHandler);
 		this.upload_button.style("z-index", "1");
+		this.upload_button.style("color", "#DCDCDC");
 		this.upload_button.position(this.pos.x - 65, this.pos.y + 3);
 		this.upload_button.hide();
 		this.upload_button.size(170, 20);
