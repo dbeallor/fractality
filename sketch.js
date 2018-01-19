@@ -88,7 +88,7 @@ function setup() {
 		fb_share_button.style.width = 30;
 		fb_share_button.style.height = 10;
 		fb_share_button.style.position = "absolute";
-	    fb_share_button.style.right = "70px";
+	    fb_share_button.style.right = "80px";
 	    fb_share_button.style.top = "1px";
 	    // fb_share_button.style.display = "none";
 	}	
