@@ -114,7 +114,7 @@ function Intro(){
 				return true;
 			}
 			else if (withinBounds(mouseX, mouseY, this.ad_bounds))
-				window.location.href = 'http://fractality.me/mandelbrot/';
+				window.location.href = 'http://fractality.me';
 		}
 		return false;
 	}
