@@ -147,7 +147,7 @@ function draw() {
 				styleCursor();
 				background(color(windows[3].color_pickers[0].value()));
 
-				if (fractal.creating_seed)
+				if (fractal.creating_seed || fractal.creating_frame)
 					grid.show();
 
 				fractal.show();
@@ -288,7 +288,7 @@ function initializeMenuBar(){
 	menu_bar.addButton("Explore the Depths of the Mandelbrot Set!", "", function(){mandelbrot = true; openNewFractalWarningBox();});
 
 	menu_bar.addFolder("File");
-
+	menu_bar.addButton("New Fractal", "N", openNewFractalWarningBox);
 	menu_bar.addButton("Open File...", "O", openLoadDialog);
 	menu_bar.addButton("Download as txt file...", "S", openSaveDialog);
 	menu_bar.addButton("Capture Screenshot...", "D", openScreenshotDialog);
@@ -310,7 +310,8 @@ function initializeMenuBar(){
 
 	menu_bar.addFolder("Fractalization");
 	menu_bar.addButton("Lock Seed", "enter", lockSeed);
-	menu_bar.addButton("Level Up", "enter", levelUp);
+	menu_bar.addButton("Lock Frame", "enter", lockFrame);
+	menu_bar.addButton("Grow", "enter", levelUp);
 	// menu_bar.addButton("Max Level Up", "M", maxOut);
 	// menu_bar.addButton("Timed Level Up", ", ", null);
 	menu_bar.addButton("Customize Color Scheme", "C", openColorDialog);
@@ -335,12 +336,14 @@ function initializeMenuBar(){
 function refreshMenuBarButtons(){
 	if (fractal.creating_seed)
 		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Seed", "Tutorial"]);
-	else if (fractal.creating_generator)
+	else if (fractal.orienting_seed || fractal.orienting_frame)
 		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Skip Edge", "Hide Edge", "Undo", "Tutorial"]);
+	else if (fractal.creating_frame || fractal.creating_frame)
+		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Undo", "Toggle Gridlines", "Lock Frame", "Tutorial"]);
 	else if (fractal.viewing_seed)
 		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
 	else
-		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Level Up", 
+		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Grow", 
 									// "Max Level Up", "Timed Level Up", 
 									"Download as txt file...", "Capture Screenshot...", "Redraw Seed", "Customize Color Scheme",   "Zoom In", "Zoom Out", "Center", "Rotate Left 90°", 
 									"Rotate Right 90°", "View Seed", "Drag Mode Rotate", "Drag Mode Translate", "Zoom Mode Mouse Centered", "Zoom Mode Fractal Centered", "Tutorial"]);
@@ -359,11 +362,11 @@ function mouseOnMenuBar(){
 }
 
 function undo(){
-	if (fractal.creating_seed)
-		fractal.undoSeed();
+	if (fractal.creating_seed || fractal.creating_frame)
+		fractal.undoNode();
 
-	if (fractal.creating_generator)
-		fractal.undoGenerator();
+	if (fractal.orienting_seed || fractal.orienting_frame)
+		fractal.undoOrientation();
 }
 
 function leave(){
@@ -556,11 +559,11 @@ function lockSeed(){
 // ==GENERATOR CREATION
 // =======================================================================================================
 function skipEdge(){
-	fractal.updateGenerator(true, false);
+	fractal.skipEdge();
 }
 
 function hideEdge(){
-	fractal.updateGenerator(false, true);
+	fractal.hideEdge();
 }
 
 function maxOut(){
@@ -570,6 +573,18 @@ function maxOut(){
 
 function levelUp(){
 	fractal.getReadyToFractalize();
+}
+
+// =======================================================================================================
+// ==FRAME CREATION
+// =======================================================================================================
+function lockFrame(){
+	if (fractal.nodes.length < 3)
+		alert("Put down at least 3 nodes to lock your frame.")
+	else{
+		fractal.setupForFrameOrientation();
+		refreshMenuBarButtons();
+	}
 }
 
 // =======================================================================================================
@@ -585,6 +600,7 @@ function handleFile(file){
 }
 
 function loadSeed(loaded_data){
+	print(loaded_data)
 	windows[2].upload_button.remove();
 	windows[2].drop_area.remove();
 
@@ -593,10 +609,12 @@ function loadSeed(loaded_data){
 	fractal.edges_drawn = false;
 	fractal.nodes = [];
 
+	// Load Color Scheme
 	var colors = split(loaded_data[0], '%');
 	for (var i = 0; i < windows[3].color_pickers.length; i++)
 		windows[3].color_pickers[i].value(colors[i]);
 
+	// Load Seed
 	var specs;
 	for (var i = 0; i < loaded_data.length; i++){
 		if (loaded_data[i + 1] == "~")
@@ -606,6 +624,7 @@ function loadSeed(loaded_data){
 		if (i > 0)
 			fractal.edges[i-1] = new FractalEdge(fractal.nodes[i-1].pos, fractal.nodes[i].pos, 1, parseFloat(specs[2]), color(200));
 	}
+	var last = i;
 
 	fractal.seed.recordData(fractal.nodes, fractal.edges);
 	for (var i = 0; i < fractal.edges.length; i++){
@@ -615,6 +634,27 @@ function loadSeed(loaded_data){
 
 	fractal.seed.nodes = fractal.nodeCopy(fractal.nodes);
 	fractal.seed.edges = fractal.edgeCopy(fractal.edges);
+
+	// Load Frame
+	fractal.nodes = [];
+	fractal.edges = [];
+	for (var i = last + 1; i < loaded_data.length; i++){
+		if (loaded_data[i + 1] == "~")
+			break;
+		specs = split(loaded_data[i + 1], '%');
+		var idx = i - (last + 1);
+		fractal.nodes[idx] = new FractalNode(parseFloat(specs[0]), parseFloat(specs[1]));
+		if (idx > 0)
+			fractal.edges[idx-1] = new FractalEdge(fractal.nodes[idx-1].pos, fractal.nodes[idx].pos, 1, parseFloat(specs[2]), color(200));
+	}
+
+	fractal.frame.recordData(fractal.nodes, fractal.edges);
+	for (var i = last + 1; i < fractal.edges.length; i++)
+		fractal.frame.types[i] = fractal.edges[i].type;
+
+	fractal.frame.nodes = fractal.nodeCopy(fractal.nodes);
+	fractal.frame.edges = fractal.edgeCopy(fractal.edges);
+
 	fractal.refresh();
 	fractal.center();
 	fractal.scaleColors();
@@ -655,14 +695,26 @@ function openScreenshotDialog(){
 
 function saveSeed(){
 	var save_data = [];
+	// Save color scheme
 	save_data = append(save_data, windows[3].color_pickers[0].value() + '%' + windows[3].color_pickers[1].value() + '%' 
 		+ windows[3].color_pickers[2].value() + '%' + windows[3].color_pickers[3].value());
+
+	// Save seed
 	for (var i = 0; i < fractal.seed.nodes.length; i++)
 		if (i == 0)
 			save_data = append(save_data, str(fractal.seed.nodes[i].pos.x) + "%" + str(fractal.seed.nodes[i].pos.y));
 		else
 			save_data = append(save_data, str(fractal.seed.nodes[i].pos.x) + "%" + str(fractal.seed.nodes[i].pos.y) + "%" + str(fractal.seed.edges[i-1].type));
 	save_data = append(save_data, "~");
+
+	// Save frame
+	for (var i = 0; i < fractal.frame.nodes.length; i++)
+		if (i == 0)
+			save_data = append(save_data, str(fractal.frame.nodes[i].pos.x) + "%" + str(fractal.frame.nodes[i].pos.y));
+		else
+			save_data = append(save_data, str(fractal.frame.nodes[i].pos.x) + "%" + str(fractal.frame.nodes[i].pos.y) + "%" + str(fractal.frame.edges[i-1].type));
+	save_data = append(save_data, "~");
+
 	saveStrings(save_data, save_file_name);
 }
 

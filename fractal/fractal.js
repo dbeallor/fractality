@@ -2,12 +2,14 @@ function Fractal(nodes, edges){
 	this.nodes = nodes || [new FractalNode(0, 0)];
 	this.edges = edges || [];
 	this.creating_seed = true;
-	this.creating_generator = false;
+	this.orienting_seed = false;
+	this.creating_frame = false;
 	this.fractalizing = false;
 	this.maxing_out = false;
 	var d = pixelDensity();
 	this.graphics = createGraphics(d * windowWidth, d * windowHeight);
 	this.seed = new FractalSeed();
+	this.frame = new FractalSeed();
 	this.edges_drawn = true;
 	this.temp_nodes = [];
 	this.temp_edges = [];
@@ -17,11 +19,11 @@ function Fractal(nodes, edges){
 	this.viewing_seed = false;
 
 	this.show = function(){
-		if (this.creating_seed && tutorial.idle()){
+		if ((this.creating_seed || this.creating_frame) && tutorial.idle()){
 			this.followMouseWithNode();
 			this.showSeedWIP();
 		}
-		else if (this.creating_generator){
+		else if (this.orienting_seed || this.orienting_frame){
 			if (onScreen() && noOpenWindows() && (menu_bar.folderIsOpen() < 0 || tutorial.idle()))
 				this.refreshEdgeType();
 			this.showSelection();
@@ -50,26 +52,38 @@ function Fractal(nodes, edges){
 			ready = false;
 		}
 
-		// Generator creation mouse events
-		if (this.creating_generator && onScreen() && (menu_bar.folderIsOpen() || tutorial.idle()) < 0 && noOpenWindows() && ready){
+		// Seed orientation mouse events
+		if (this.orienting_seed && onScreen() && (menu_bar.folderIsOpen() || tutorial.idle()) < 0 && noOpenWindows() && ready){
 			if (tutorial.current_window == 4){
-				// print(this.seed.edges[4].type)
-				if (this.seed.edges[4].type == 0 || this.seed.edges[4].type == 1)
-					this.updateGenerator(false, false);
-			}
-			else if (tutorial.current_window == 6){
-				if (this.current_edge == 3 && (this.seed.edges[2].type == 0 || this.seed.edges[2].type == 1))
-					this.updateGenerator(false, false);
-				if (this.current_edge == 1 && (this.seed.edges[0].type == 0 || this.seed.edges[0].type == 1))
+				if (this.seed.edges[this.current_edge - 1].type == 0 || this.seed.edges[this.current_edge - 1].type == 1)
 					this.updateGenerator(false, false);
 			}
 			else
 				this.updateGenerator(false, false);
 			ready = false;
 		}
+
+		// Frame creation mouse events
+		if (this.creating_frame && onScreen() && this.notDoubledUp() && menu_bar.folderIsOpen() < 0 && noOpenWindows() && tutorial.idle() && ready){
+			this.updateSeed();
+			ready = false;
+		}
+
+		// Frame orientation mouse events
+		if (this.orienting_frame && onScreen() && (menu_bar.folderIsOpen() || tutorial.idle()) < 0 && noOpenWindows() && ready){
+			if (tutorial.current_window == 6){
+				if (this.frame.edges[this.current_edge - 1].type == 0 || this.frame.edges[this.current_edge - 1].type == 1)
+					this.updateFrameOrientation(false, false);
+			}
+			else
+				this.updateFrameOrientation(false, false);
+			ready = false;
+		}
 	}
 
-
+	// =======================================================================================================
+	// ==Seed Creation
+	// =======================================================================================================
 	this.followMouseWithNode = function(){
 		if (onScreen()){
 			var snap = [99999999, 99999999];
@@ -114,13 +128,16 @@ function Fractal(nodes, edges){
 		this.edges = append(this.edges, new FractalEdge(this.nodes[this.nodes.length - 2].pos, this.nodes[this.nodes.length - 1].pos, 2, 0, color(200)));
 	}
 
-	this.undoSeed = function(){
+	this.undoNode = function(){
 		if (this.nodes.length > 1){
 			this.nodes.splice(fractal.nodes.length-1, 1);
 			this.edges.splice(fractal.nodes.length-1, 1);
 		}
 	}
 
+	// =======================================================================================================
+	// ==SEED ORIENTATION
+	// =======================================================================================================
 	this.setupForGeneratorCreation = function(){
 		this.nodes.splice(this.nodes.length - 1, 1);
 		this.edges.splice(this.edges.length - 1, 1);
@@ -135,7 +152,7 @@ function Fractal(nodes, edges){
 
 		this.current_edge = this.nodes.length - 1;
 		this.creating_seed = false;
-		this.creating_generator = true;
+		this.orienting_seed = true;
 	}
 
 	this.nodeCopy = function(n){
@@ -161,21 +178,33 @@ function Fractal(nodes, edges){
 		if (aboveLine(mouseX, mouseY, this.nodes[idx - 1].pos.x, this.nodes[idx - 1].pos.y, this.nodes[idx].pos.x, this.nodes[idx].pos.y)){
 			if (toTheLeft(mouseX, mouseY, this.nodes[idx - 1].pos.x, this.nodes[idx - 1].pos.y, this.nodes[idx].pos.x, this.nodes[idx].pos.y)){
 				this.edges[idx - 1].setType(1);
-				this.seed.edges[idx - 1].setType(1);
+				if (this.orienting_seed)
+					this.seed.edges[idx - 1].setType(1);
+				else
+					this.frame.edges[idx - 1].setType(1);
 			}
 			else{
 				this.edges[idx - 1].setType(0);
-				this.seed.edges[idx - 1].setType(0);
+				if (this.orienting_seed)
+					this.seed.edges[idx - 1].setType(0);
+				else
+					this.frame.edges[idx - 1].setType(0);
 			}
 		}
 		else{
 			if (toTheLeft(mouseX, mouseY, this.nodes[idx - 1].pos.x, this.nodes[idx - 1].pos.y, this.nodes[idx].pos.x, this.nodes[idx].pos.y)){
 				this.edges[idx - 1].setType(3);
-				this.seed.edges[idx - 1].setType(3);
+				if (this.orienting_seed)
+					this.seed.edges[idx - 1].setType(3);
+				else
+					this.frame.edges[idx - 1].setType(3);
 			}
 			else {
 				this.edges[idx - 1].setType(2);
-				this.seed.edges[idx - 1].setType(2);
+				if (this.orienting_seed)
+					this.seed.edges[idx - 1].setType(2);
+				else
+					this.frame.edges[idx - 1].setType(2);
 			}
 		}
 	}
@@ -202,15 +231,16 @@ function Fractal(nodes, edges){
 			if (this.edges[i].type < 5)
 				this.edges[i].show();
 
-		for (var i = 0; i < this.seed.nodes.length; i++){
+		var nodes = this.orienting_seed ? this.seed.nodes : this.frame.nodes;
+		for (var i = 0; i < nodes.length; i++){
 			if (i == this.current_edge || i == this.current_edge - 1){
-				this.seed.nodes[i].setSize(15);
-				this.seed.nodes[i].setFill(color(243,53,53));
+				nodes[i].setSize(15);
+				nodes[i].setFill(color(243,53,53));
 			}
-			this.seed.nodes[i].show();
-			this.seed.nodes[i].setSize(10);
-			this.seed.nodes[i].setFill(color(30));
-			this.seed.nodes[i].show();
+			nodes[i].show();
+			nodes[i].setSize(10);
+			nodes[i].setFill(color(30));
+			nodes[i].show();
 		}
 	}
 
@@ -343,7 +373,7 @@ function Fractal(nodes, edges){
 
 		this.current_edge--;
 		if (this.current_edge == 0)
-			this.setupForFractalization();
+			this.setupForFrameCreation();
 	}
 
 	this.update = function(e){
@@ -360,15 +390,21 @@ function Fractal(nodes, edges){
 					this.temp_edges[i].show();
 	}
 
-	this.undoGenerator = function(){
+	this.undoOrientation = function(){
 		if (this.current_edge <= this.edges.length) {
 			this.edges[this.current_edge].setType(0);
-			this.seed.edges[this.current_edge].setType(0);
-			this.seed.types[this.current_edge] = 0;
-			this.seed.types_r[this.seed.types_r.length - this.current_edge - 1] = 0;
+			if (this.orienting_seed){
+				this.seed.edges[this.current_edge].setType(0);
+				this.seed.types[this.current_edge] = 0;
+				this.seed.types_r[this.seed.types_r.length - this.current_edge - 1] = 0;
+			}
+			else{
+				this.frame.edges[this.current_edge].setType(0);
+				this.frame.types[this.current_edge] = 0;
+			}
 			var stop = this.current_edge + 1;
-			this.edges = this.edgeCopy(this.seed.edges);
-			this.nodes = this.nodeCopy(this.seed.nodes);
+			this.edges = this.edgeCopy(this.orienting_seed ? this.seed.edges : this.frame.edges);
+			this.nodes = this.nodeCopy(this.orienting_seed ? this.seed.nodes : this.frame.nodes);
 			this.current_edge = this.nodes.length - 1;
 			for (var i = this.edges.length - 1; i >= stop; i--){
 				if (this.edges[i].type == 4)
@@ -382,12 +418,79 @@ function Fractal(nodes, edges){
 		}
 	}
 
+	this.skipEdge = function(){
+		this.orienting_seed ? this.updateGenerator(true, false) : this.updateFrameOrientation(true, false);
+	}
+
+	this.hideEdge = function(){
+		this.orienting_seed ? this.updateGenerator(false, true) : this.updateFrameOrientation(false, true);
+	}
+
+	// =======================================================================================================
+	// ==FRAME CREATION
+	// =======================================================================================================
+	this.setupForFrameCreation = function(){
+		this.nodes = [new FractalNode(0, 0)];
+		this.edges = [];
+		this.orienting_seed = false;
+		this.creating_frame = true;
+		refreshMenuBarButtons();
+	}
+
+	// =======================================================================================================
+	// ==FRAME ORIENTATION
+	// =======================================================================================================
+	this.setupForFrameOrientation = function(){
+		this.nodes.splice(this.nodes.length - 1, 1);
+		this.edges.splice(this.edges.length - 1, 1);
+
+		for (var i = 0; i < this.edges.length; i++)
+			this.edges[i].setWeight(1);
+
+		this.frame.recordData(this.nodes, this.edges);
+
+		this.frame.nodes = this.nodeCopy(this.nodes);
+		this.frame.edges = this.edgeCopy(this.edges);
+
+		this.current_edge = this.nodes.length - 1;
+		this.creating_frame = false;
+		this.orienting_frame = true;
+	}
+
+	this.updateFrameOrientation = function(skip, hide){
+		var idx = this.current_edge;
+		if (!skip && !hide){
+			this.frame.edges[idx-1].setType(this.edges[idx-1].type);
+			this.frame.types[idx-1] = this.edges[idx-1].type;
+		}
+		else if (skip){
+			this.frame.edges[idx-1].setType(4);
+			this.frame.types[idx-1] = 4;
+		}
+		else if (hide){
+			this.frame.edges[idx-1].setType(5);
+			this.frame.types[idx-1] = 5;
+		}
+
+		this.edges = this.edgeCopy(this.frame.edges);
+		this.nodes = this.nodeCopy(this.frame.nodes);
+		for (var i = this.edges.length - 1; i >= idx - 1; i--){
+			if (this.edges[i].type < 4)
+				this.update(i + 1);
+		}
+
+		this.current_edge--;
+		if (this.current_edge == 0)
+			this.setupForFractalization();
+	}
+
+	// =======================================================================================================
+	// ==FRACTALIZATION
+	// =======================================================================================================
 	this.setupForFractalization = function(){
-		this.nodes = this.nodeCopy(this.seed.nodes);
-		this.edges = this.edgeCopy(this.seed.edges);
 		this.scaleColors();
 		this.refreshRotationCenter();
-		this.creating_generator = false;
+		this.orienting_frame = false;
 		refreshMenuBarButtons();
 		this.edges_drawn = false;
 	}
@@ -427,7 +530,7 @@ function Fractal(nodes, edges){
 	}
 
 	this.idle = function(){
-		return (!this.creating_seed && !this.creating_generator && !this.fractalize);
+		return (!this.creating_seed && !this.orienting_seed && !this.creating_frame && !this.orienting_frame && !this.fractalize);
 	}
 
 	this.translate = function(deltaX, deltaY){
@@ -520,8 +623,8 @@ function Fractal(nodes, edges){
 				this.level++;
 			}
 			else if (!this.maxing_out){
-				this.nodes = this.nodeCopy(this.seed.nodes);
-				this.edges = this.edgeCopy(this.seed.edges);
+				this.nodes = this.nodeCopy(this.frame.nodes);
+				this.edges = this.edgeCopy(this.frame.edges);
 				this.edges_drawn = false;
 				this.level = 1;
 				this.scaleColors();

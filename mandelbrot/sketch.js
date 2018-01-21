@@ -5,7 +5,7 @@ var y_range;
 var x_range;
 var c1 = [0, 0];
 var c2 = [0, 0];
-var iterations = 500;
+var iterations = 200;
 var refresh = false;
 var graphics;
 var menu_bar;
@@ -24,6 +24,9 @@ var zoom_stack;
 var ad;
 var center;
 var undoing;
+var workers;
+var sections_refreshed;
+var chunks;
 
 // =======================================================================================================
 // ==PRELOAD AND SETUP
@@ -56,10 +59,10 @@ function setup() {
 	graphics[0] = createGraphics(600, 400);
 	graphics[0].pixelDensity(1);
 
-	graphics[1] = createGraphics(1050, 700);
+	graphics[1] = createGraphics(900, 600);
 	graphics[1].pixelDensity(1);
 
-	graphics[2] = createGraphics(1650, 1100);
+	graphics[2] = createGraphics(1500, 1000);
 	graphics[2].pixelDensity(1);
 
 	resolution_change = false;
@@ -101,6 +104,14 @@ function setup() {
     fb_share_button.style.display = "block";
 
 	screen_bounds = [0, windowWidth, menu_bar.height, windowHeight];
+
+	workers = [];
+	for (var i = 0; i < navigator.hardwareConcurrency; i++){
+		workers[i] = new Worker('mandelbrotworker.js');
+		workers[i].addEventListener('message', function(e){
+			sectionRefreshed(e.data.work, e.data.start, e.data.stop, e.data.chunk);
+		}, false);
+	}
 }
 
 function initializeWindows(){
@@ -183,7 +194,7 @@ function drawFrame(){
 function styleCursor(){
 	if (refresh)
 		canvas.style.cursor = "wait";
-	else if (withinBounds(mouseX, mouseY, windows[2].ad_bounds))
+	else if (withinBounds(mouseX, mouseY, windows[2].ad_bounds) && windows[2].visible)
 		canvas.style.cursor = "pointer";
 	else
 		canvas.style.cursor = "auto";
@@ -252,25 +263,92 @@ function okayToZoom(){
 // =======================================================================================================
 // ==FRACTALIZATION
 // =======================================================================================================
+// function refreshDrawing(){
+// 	var g = graphics[current_graphic];
+// 	g.loadPixels();
+// 	for (var i = 0; i < g.width; i++){
+// 		for (var j = 0; j < g.height; j++){
+// 			var a = map(i, 0, g.width - 1, x_range[0],  x_range[1]);
+// 			var b = map(j, 0, g.height - 1, y_range[0],  y_range[1]);
+// 			var f = colorMap(mandelbrot([0, 0], [a, b], 0, iterations));
+// 			var pix_idx = (i + j * g.width) * 4;
+// 			g.pixels[pix_idx + 0] = f.levels[0];
+// 			g.pixels[pix_idx + 1] = f.levels[1];
+// 			g.pixels[pix_idx + 2] = f.levels[2];
+// 			g.pixels[pix_idx + 3] = 255;
+// 		}
+// 	}
+// 	g.updatePixels();
+// 	canvas.style.cursor = "auto";
+// 	refresh = false;
+// 	resolution_change = false;
+// 	if (tutorial.current_window == 0 && tutorial.visible)
+// 		nextWindow();
+
+// 	else if (tutorial.current_window == 1 && tutorial.visible && undoing){
+// 		undoing = false;
+// 		menu_bar.enable();
+// 		menu_bar.folders[2].buttons[0].unhighlight();
+// 		menu_bar.closeFolder(2);
+// 		nextWindow();
+// 	}
+
+// 	else if (tutorial.current_window == 2 && tutorial.visible && current_graphic == 2){
+// 		menu_bar.enable();
+// 		menu_bar.folders[3].buttons[2].unhighlight();
+// 		menu_bar.closeFolder(3);
+// 		nextWindow();
+// 	}
+// }
+
 function refreshDrawing(){
-	var g = graphics[current_graphic];
-	g.loadPixels();
-	for (var i = 0; i < g.width; i++){
-		for (var j = 0; j < g.height; j++){
-			var a = map(i, 0, g.width - 1, x_range[0],  x_range[1]);
-			var b = map(j, 0, g.height - 1, y_range[0],  y_range[1]);
-			var f = colorMap(mandelbrot([0, 0], [a, b], 0, iterations));
-			var pix_idx = (i + j * g.width) * 4;
-			g.pixels[pix_idx + 0] = f.levels[0];
-			g.pixels[pix_idx + 1] = f.levels[1];
-			g.pixels[pix_idx + 2] = f.levels[2];
-			g.pixels[pix_idx + 3] = 255;
-		}
+	sections_refreshed = 0;
+	chunks = [];
+	var start, stop, c1, c2;
+	var w = graphics[current_graphic].width;
+	var h = graphics[current_graphic].height;
+	for (var i = 0; i < workers.length; i++){
+		start = i * floor(h / 8);
+		if (i == workers.length - 1)
+			stop = h;
+		else
+			stop = (i + 1) * floor(h / 8);
+
+		// print(start + ', ' + stop)
+
+		c1 = color(windows[0].color_pickers[0].value());
+		c2 = color(windows[0].color_pickers[1].value());
+		c1._getBrightness();  // Cache hsba so it definitely exists.
+		c2._getBrightness();
+		workers[i].postMessage({start: start, stop: stop, c1: c1, c2: c2, width: w, height: h, x_range: x_range, y_range: y_range, iterations: iterations, chunk: i});
 	}
-	g.updatePixels();
+	refresh = true;
+}
+
+function sectionRefreshed(work, start, stop, chunk){
+	chunks[chunk] = work;
+	sections_refreshed++;
+	if (sections_refreshed == workers.length)
+		doneRefreshing();
+}
+
+function doneRefreshing(){
 	canvas.style.cursor = "auto";
 	refresh = false;
 	resolution_change = false;
+
+	var new_pixels = [];
+	for (var i = 0; i < workers.length; i++)
+		new_pixels = concat(new_pixels, chunks[i]);
+
+	graphics[current_graphic].loadPixels();
+
+	// print(new_pixels.length)
+	// print(graphics[current_graphic].pixels.length)
+
+	for (var i = 0; i < new_pixels.length; i++)
+		graphics[current_graphic].pixels[i] = new_pixels[i];
+	graphics[current_graphic].updatePixels();
 	if (tutorial.current_window == 0 && tutorial.visible)
 		nextWindow();
 
@@ -281,12 +359,10 @@ function refreshDrawing(){
 		menu_bar.closeFolder(2);
 		nextWindow();
 	}
-
 	else if (tutorial.current_window == 2 && tutorial.visible && current_graphic == 2){
 		menu_bar.enable();
 		menu_bar.folders[3].buttons[2].unhighlight();
 		menu_bar.closeFolder(3);
-		nextWindow();
 	}
 }
 

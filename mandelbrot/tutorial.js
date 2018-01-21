@@ -62,13 +62,13 @@ function Tutorial(){
 		this.windows[1].setTextPosition(0, 0);
 		this.windows[1].setText("To zoom back out to the previous level,\nclick undo (or hit z).");
 
-		this.addWindow("View Menu", menu_bar.folders[3].buttons[0].bounds[1] + 20 + 190, screen_bounds[2] + 20 + 100, 380, 200);
+		this.addWindow("View Menu", menu_bar.folders[3].buttons[0].bounds[1] + 20 + 190, screen_bounds[2] + 20 + 90, 380, 180);
 		this.windows[2].exitable = false;
 		this.windows[2].setTextStyle(NORMAL);
 		this.windows[2].setTextSize(14);
 		this.windows[2].setTextPosition(0, 0);
-		this.windows[2].setText("You might have noticed the low image resolution.\nThe View menu lets you choose the resolution of the\nimage, as well as customize the color scheme.\n\n" +
-			"Click and choose the clearest resolution and observe\nthe results. The image looks much sharper, but the\nrendering time increases drastically.");
+		this.windows[2].setText("The View menu lets you choose the resolution of the\nimage, as well as customize the color scheme.\n\n" +
+			"Click and choose the clearest resolution and observe\nthe results. The image looks much sharper, but the\nrendering time slows down.");
 
 		this.addWindow("Explore", graphic_bounds[0] + 125 + 10, graphic_bounds[2] + 90 + 10, 250, 180);
 		this.windows[3].exitable = false;
