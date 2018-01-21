@@ -55,6 +55,8 @@ function Tutorial(){
 				this.nextWindow();
 			}
 		}
+		if (this.current_window == 8)
+			refreshMenuBarButtons();
 	}
 
 	this.open = function(){
