@@ -497,6 +497,10 @@ function Fractal(nodes, edges){
 
 	this.scaleColors = function(){
 		var l = this.edges.length;
+		if (l == 1){
+			this.edges[0].setStroke(colorMap(1));
+			return;
+		}
 		var r, g, b;
 		for (var i = 0; i < l; i++){
 			// Map position in edges array to value between 0 and 1
