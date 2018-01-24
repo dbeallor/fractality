@@ -824,5 +824,5 @@ function showMobileMessage() {
 	noStroke();
 	textAlign(CENTER, CENTER);
 	textSize(36);
-	text("Sorry, this site is\nnot yet mobile friendly.", windowWidth / 2, windowHeight / 2);
+	text("Sorry, this site is\nnot yet mobile friendly.\n\nVisit fractality.me on your desktop!", windowWidth / 2, windowHeight / 2);
 }
