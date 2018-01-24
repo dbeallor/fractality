@@ -550,6 +550,14 @@ function Fractal(nodes, edges){
 			}
 		}
 
+		for (var i = 0; i < this.frame.nodes.length; i++){
+			this.frame.nodes[i].setPosition([this.frame.nodes[i].pos.x + deltaX, this.frame.nodes[i].pos.y + deltaY]);
+			if (i > 0){
+				this.frame.edges[i-1].setStart(this.frame.edges[i-1].start.x + deltaX, this.frame.edges[i-1].start.y + deltaY);
+				this.frame.edges[i-1].setEnd(this.frame.edges[i-1].end.x + deltaX, this.frame.edges[i-1].end.y + deltaY);
+			}
+		}
+
 		this.edges_drawn = false;
 	}
 
@@ -565,6 +573,13 @@ function Fractal(nodes, edges){
 			if (i > 0)
 				this.seed.edges[i-1].rotate(angle, this.rotation_center);
 		}
+
+		for (var i = 0; i < this.frame.nodes.length; i++){
+			this.frame.nodes[i].rotate(angle, this.rotation_center);
+			if (i > 0)
+				this.frame.edges[i-1].rotate(angle, this.rotation_center);
+		}
+
 		this.edges_drawn = false;
 	}
 
@@ -599,6 +614,18 @@ function Fractal(nodes, edges){
 
 				var new_end = scalePoint(this.seed.edges[i-1].end.x, this.seed.edges[i-1].end.y, delta, center);
 				this.seed.edges[i-1].setEnd(new_end[0], new_end[1]);
+			}
+		}
+
+		for (var i = 0; i < this.frame.nodes.length; i++){
+			var new_pos = scalePoint(this.frame.nodes[i].pos.x, this.frame.nodes[i].pos.y, delta, center);
+			this.frame.nodes[i].setPosition([new_pos[0], new_pos[1]]);
+			if (i > 0){
+				var new_start = scalePoint(this.frame.edges[i-1].start.x, this.frame.edges[i-1].start.y, delta, center);
+				this.frame.edges[i-1].setStart(new_start[0], new_start[1]);
+
+				var new_end = scalePoint(this.frame.edges[i-1].end.x, this.frame.edges[i-1].end.y, delta, center);
+				this.frame.edges[i-1].setEnd(new_end[0], new_end[1]);
 			}
 		}
 

@@ -17,6 +17,7 @@ function WarningBox(x, y, width, height, message, continue_listener, cancel_list
 				translate(this.pos.x, this.pos.y);
 				fill(0);
 				noStroke();
+				textSize(12);
 				textFont("Arial");
 				textAlign(CENTER, CENTER);
 				text(this.message, 0, -15);

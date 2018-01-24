@@ -440,7 +440,7 @@ function windowKeypressEvents(){
 }
 
 function openNewFractalWarningBox(){
-	if (!fractal.creating_seed){
+	if (!fractal.creating_seed && !fractal.creating_frame){
 		closeWindows();
 		windows[4].open();
 	}
