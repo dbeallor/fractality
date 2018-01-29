@@ -1,13 +1,19 @@
 function Fractal(nodes, edges){
 	this.nodes = nodes || [new FractalNode(0, 0)];
 	this.edges = edges || [];
+
+	// State flags
 	this.creating_seed = true;
 	this.orienting_seed = false;
 	this.creating_frame = false;
+	this.orienting_frame = false;
 	this.fractalizing = false;
 	this.maxing_out = false;
+
+	// Fractal will be drawn on offscreen buffer using createGraphics
 	var d = pixelDensity();
 	this.graphics = createGraphics(d * windowWidth, d * windowHeight);
+
 	this.seed = new FractalSeed();
 	this.frame = new FractalSeed();
 	this.edges_drawn = true;
@@ -19,25 +25,33 @@ function Fractal(nodes, edges){
 	this.viewing_seed = false;
 
 	this.show = function(){
+		// Display for the seed and frame creation stages
 		if ((this.creating_seed || this.creating_frame) && tutorial.idle()){
 			this.followMouseWithNode();
 			this.showSeedWIP();
 		}
+
+		// Display for the seed and frame orientation stages
 		else if (this.orienting_seed || this.orienting_frame){
 			if (onScreen() && noOpenWindows() && (menu_bar.folderIsOpen() < 0 || tutorial.idle()))
 				this.refreshEdgeType();
 			this.showSelection();
 		}
+
+		// Display for the fractalizaiton / maxing out (***currently disabled) stages
 		else if (this.fractalizing && !this.maxing_out)
 			this.advance();
 
+		// Display for seed viewing option
 		else if (this.viewing_seed)
 			this.seed.show();
 		
+		// Currently disable maxing out option
 		if (this.maxing_out && ready)
 			this.maxOutAux();
 
-		else if (!this.edges_drawn)
+		// To refresh the pixels of the graphic
+		else if (!this.edges_drawn && !this.viewing_seed)
 			this.refresh();
 
 		var d = pixelDensity();
@@ -639,16 +653,26 @@ function Fractal(nodes, edges){
 	this.getReadyToFractalize = function(){
 		if (!this.fractalizing){
 			this.graphics.clear();
-			this.prev_edge_count = this.edges.length;
+			this.prev_edge_count = this.next_edge_count;
 
-			var num_unreplaced = 0;
+			var num_skipped = 0;
+			var num_hidden = 0;
 			for (var i = 0; i < this.edges.length; i++){
-				if (this.edges[i].type > 3)
-					num_unreplaced++;
+				if (this.edges[i].type == 4)
+					num_skipped++;
+				if (this.edges[i].type == 5)
+					num_hidden++;
 			}
 
-			this.next_edge_count = num_unreplaced + (this.edges.length - num_unreplaced) * this.seed.types.length;
-			if (this.next_edge_count <= 50000){
+			var seed_num_hidden = 0;
+			for (var i = 0; i < this.seed.types.length; i++){
+				if (this.seed.types[i] == 5)
+					seed_num_hidden++;
+			}
+
+			this.next_edge_count = num_skipped + (this.edges.length - num_skipped - num_hidden) * (this.seed.types.length - seed_num_hidden);
+			this.next_total = num_skipped + num_hidden + (this.edges.length - num_skipped - num_hidden) * (this.seed.types.length);
+			if (this.next_edge_count <= 30000){
 				this.current_edge = this.edges.length;
 				this.fractalizing = true;
 				this.level++;
@@ -674,6 +698,7 @@ function Fractal(nodes, edges){
 			if (this.current_edge == 0){
 				this.fractalizing = false;
 				this.edges_drawn = false;
+				// this.scaleColors();
 				break;
 			}
 		}
@@ -700,6 +725,7 @@ function Fractal(nodes, edges){
 
 	this.viewSeed = function(){
 		this.viewing_seed = true;
+		this.graphics.clear();
 	}
 
 	this.viewFractal = function(){

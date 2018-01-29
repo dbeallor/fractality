@@ -8,7 +8,7 @@ function FractalEdge(start, end, w, t, s){
 	this.show = function(){
 		fractal.graphics.push();
 			if (fractal.fractalizing){
-				var x = map(fractal.next_edge_count - (fractal.edges.length - fractal.current_edge + 1), 0, fractal.next_edge_count - 1, 0, 1);
+				var x = map(fractal.next_total - (fractal.edges.length - fractal.current_edge + 1), 0, fractal.next_total - 1, 0, 1);
 				this.setStroke(colorMap(x));
 			}
 			fractal.graphics.stroke(this.stroke);

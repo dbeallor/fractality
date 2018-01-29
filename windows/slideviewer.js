@@ -1,4 +1,4 @@
-function SlideViewer(title, x, y, width, height, images, button_title, listener){
+function SlideViewer(title, x, y, width, height, button_title, listener){
 	this.pos = createVector(x, y);
 	this.title = title;
 	this.width = width;
@@ -7,7 +7,7 @@ function SlideViewer(title, x, y, width, height, images, button_title, listener)
 	this.window = new p5Window(this.title, this.pos.x, this.pos.y, this.width, this.height);
 	this.fill = color(220);
 	this.current_image = 0;
-	this.images = images;
+	this.images = [];
 	var d = pixelDensity();
 	this.graphics = createGraphics(this.width * d, (this.height - this.window.header_height * 2) * d);
 	this.visible = false;

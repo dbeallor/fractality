@@ -5,12 +5,10 @@
 var canv;
 var canvas_dims = [720, 520];
 var screen_bounds;
+
 var grid;
 var images_loaded = 0;
-
-var intro_image;
-var loading_image;
-var load_icon;
+var center;
 
 // Zoom and drag
 var drag_mode;
@@ -18,8 +16,6 @@ var zoom_mode;
 
 // Windows
 var windows;
-var gallery_images = [];
-var images_loaded = 0;
 var samples = ["sierpinski", "rhombi5", "snowflake", "brushstrokes", "fingerprint", "parallelogram", "spiral2",  "pinwheel",  "rhombi8", 
 				"honeycomb2", "spiral8", "shield", "spiral17", "honeycomb3", "pinwheel3", "jellyfish", "snake",  "spiral16", "rhombi2",  "spiral7", "waves", 
 				"parallelogram2", "spiral6"];
@@ -33,21 +29,12 @@ var save_file_name;
 var mandelbrot;
 var ad;
 
-// =======================================================================================================
-// ==PRELOAD AND SETUP
-// =======================================================================================================
-function preload(){
-	if (!detectMobile()){
-		intro_image = loadImage("intro.png");
-		loading_image = loadImage("intro.png");
-		load_icon = loadImage("load_icon.png");
-		ad = loadImage("ad.jpg");
-	}
+var filter_browser;
+var finished_loading = false;
 
-	fb_share_button = document.getElementById("fb_share_button");
-	fb_share_button.style.display = "none";
-}
-
+// =======================================================================================================
+// ==SETUP
+// =======================================================================================================
 function setup() {
 	canv = createCanvas(windowWidth, windowHeight);
 	if (!detectMobile()){
@@ -57,6 +44,9 @@ function setup() {
 		initializeMenuBar();
 
 		screen_bounds = [0, width, menu_bar.height, height];
+		screen_width = screen_bounds[1] - screen_bounds[0];
+		screen_height = screen_bounds[3] - screen_bounds[2];
+		center = [windowWidth / 2, (windowHeight - menu_bar.height) / 2 + menu_bar.height];
 
 		grid = new Grid(width / 2, height / 2 + menu_bar.height / 2, windowWidth);
 
@@ -66,6 +56,8 @@ function setup() {
 		load_bar = new LoadBar(screen_bounds[1] - 100, screen_bounds[3] - 15, 80, 10);
 
 		save_file_name = '';
+
+		filter_browser = new FilterBrowser();
 
 		initializeWindows();
 
@@ -77,21 +69,66 @@ function setup() {
 		tutorial.initialize();
 		tutorial.close();
 
-		if (images_loaded == 0)
-			for (var i = 0; i < samples.length; i++)
-				gallery_images[i] = loadImage("snapshots/" + samples[i] + ".png", function() {images_loaded += 1});
-
 		loading_animation = new LoadingAnimation();
 
 		mandelbrot = false;
 
-		fb_share_button.style.width = 30;
-		fb_share_button.style.height = 10;
-		fb_share_button.style.position = "absolute";
-	    fb_share_button.style.right = "80px";
-	    fb_share_button.style.top = "1px";
-	    // fb_share_button.style.display = "none";
+		initializeFBButton();
+
+		loadImages();
 	}	
+}
+
+function loadImages(){
+	if (images_loaded == 0){
+		for (var i = 0; i < samples.length; i++){
+			loadImageWithID("snapshots/" + samples[i] + ".png", i, function(id, img) {
+				windows[5].images[id] = img; 
+			});
+		}
+
+		for (var i = 0; i < filter_browser.num_overlays; i++){
+			loadImageWithID("filter/overlays/overlay" + i + ".png", i, function(id, img) {
+				filter_browser.overlay_images[id] = img;
+			});
+		}
+
+		loadImage("intro.png", function(img){
+			windows[6].image = img;
+		});
+		
+		loadImage("ad.jpg", function(img){
+			ad = img;
+		});
+	}
+}
+
+function checkIfFinished(){
+	for (var i = 0; i < samples.length; i++)
+		if (typeof(windows[5].images[i]) == 'undefined')
+			return false;
+
+	for (var i = 0; i < filter_browser.num_overlays; i++)
+		if (typeof(filter_browser.overlay_images[i]) == 'undefined')
+			return false;
+
+	if (typeof(windows[6].image) == 'undefined')
+		return false;
+
+	if (typeof(ad) == 'undefined')
+		return false;
+
+	finished_loading = true;
+}
+
+function initializeFBButton(){
+	fb_share_button = document.getElementById("fb_share_button");
+	fb_share_button.style.display = "none";
+	fb_share_button.style.width = 30;
+	fb_share_button.style.height = 10;
+	fb_share_button.style.position = "absolute";
+    fb_share_button.style.right = "80px";
+    fb_share_button.style.top = "1px";
 }
 
 function initializeWindows(){
@@ -118,7 +155,7 @@ function initializeWindows(){
 	windows = append(windows, new_fractal_warning_box);
 
 	var dims = galleryDims();
-	var gallery = new SlideViewer("Sample Gallery", grid.pos.x, grid.pos.y, dims[0], dims[1], gallery_images, "Open", loadSample);
+	var gallery = new SlideViewer("Sample Gallery", grid.pos.x, grid.pos.y, dims[0], dims[1], "Open", loadSample);
 	windows = append(windows, gallery);
 
 	var intro = new Intro();
@@ -139,43 +176,45 @@ function galleryDims(){
 // =======================================================================================================
 function draw() {
 	if (!detectMobile()){
-		if (images_loaded == samples.length){
-			if (start_time < 0)
-				start_time = millis();
-			if (millis() - start_time > 1500){
-				fb_share_button.style.display = "block";
-				styleCursor();
-				background(color(windows[3].color_pickers[0].value()));
 
-				if (fractal.creating_seed || fractal.creating_frame)
-					grid.show();
+		if (!finished_loading)
+			checkIfFinished();
 
-				fractal.show();
+		if (finished_loading){
+			fb_share_button.style.display = "block";
+			styleCursor();
+			background(color(windows[3].color_pickers[0].value()));
 
-				if (fractal.fractalizing)
-					load_bar.show();
+			if (fractal.creating_seed || fractal.creating_frame)
+				grid.show();
 
-				dragTranslateShape();
-				dragRotateShape();
+			// filter_browser.show();
 
-				if(!noOpenWindows())
-					showWindows();
+			fractal.show();
 
-				menu_bar.show();
+			if (fractal.fractalizing)
+				load_bar.show();
 
-				tutorial.show();
-				
-				if (!mouseIsPressed && !keyIsPressed && !fractal.fractalizing)
-					ready = true;
+			dragTranslateShape();
+			dragRotateShape();
 
-				// fill(255);
-				// text(mouseX + ", " + mouseY, 50, 50);
-			}
-			else{
-				// fb_share_button.style.display = "none";
-				fb_share_button.visible = false;
-				loading_animation.show();
-			}
+			if(!noOpenWindows())
+				showWindows();
+
+			menu_bar.show();
+
+			tutorial.show();
+			
+			if (!mouseIsPressed && !keyIsPressed && !fractal.fractalizing)
+				ready = true;
+
+			// fill(255);
+			// text(mouseX + ", " + mouseY, 50, 50);
+		}
+		else {
+			// fb_share_button.style.display = "none";
+			fb_share_button.visible = false;
+			loading_animation.show();
 		}
 	}
 	else
@@ -199,6 +238,9 @@ function styleCursor(){
 function windowResized() {
 	if (!detectMobile()){
 		screen_bounds = [0, windowWidth, menu_bar.height, windowHeight];
+		screen_width = screen_bounds[1] - screen_bounds[0];
+		screen_height = screen_bounds[3] - screen_bounds[2];
+		center = [windowWidth / 2, (windowHeight - menu_bar.height) / 2 + menu_bar.height];
 
 		resizeCanvas(windowWidth, windowHeight);
 
@@ -306,7 +348,7 @@ function initializeMenuBar(){
 	menu_bar.addButton("Rotate Left 90°", "L", rotateLeft90);
 	menu_bar.addButton("Rotate Right 90°", ";", rotateRight90);
 	menu_bar.addButton("View Seed", "V", viewSeed);
-	menu_bar.checkButton("View Seed");
+	// menu_bar.checkButton("View Seed");
 
 	menu_bar.addFolder("Fractalization");
 	menu_bar.addButton("Lock Seed", "enter", lockSeed);

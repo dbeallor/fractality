@@ -15,10 +15,13 @@ function p5Button(label, x, y, width, height, listener){
 		if (this.visible){
 			push();
 				textSize(12);
-				if (this.mouseOver())
+				if (this.mouseOver()){
+					canvas.style.cursor = 'pointer';
 					fill(this.highlight)
-				else
+				}
+				else{
 					fill(this.fill);
+				}
 				noStroke();
 				resetMatrix();
 				translate(this.pos.x, this.pos.y);

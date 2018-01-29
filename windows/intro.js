@@ -6,6 +6,7 @@ function Intro(){
 	this.button_labels = ["Show Me Around", "Sample Gallery", "New Fractal", "Open Fractal"];
 	this.button_height = 40;
 	this.button_width = -1;
+	this.image;
 	var len;
 	for (var i = 0; i < this.button_labels.length; i++){
 		len = pow(str(this.button_labels[i]).length, 1/1.5) * 18 + 10;
@@ -42,12 +43,12 @@ function Intro(){
 				textFont("Arial");
 				var d = pixelDensity();
 				var y_dim = this.height - 2 * this.window.header_height;
-				var x_dim = (intro_image.width * y_dim) / intro_image.height;
+				var x_dim = (this.image.width * y_dim) / this.image.height;
 				this.graphics.background(this.window.accent);
 				this.graphics.resetMatrix();
 				this.graphics.translate(this.graphics.width / (2*d), this.graphics.height / (2*d));
 				this.graphics.imageMode(CENTER);
-				this.graphics.image(intro_image, 0, 0, x_dim, y_dim);
+				this.graphics.image(this.image, 0, 0, x_dim, y_dim);
 
 				resetMatrix();
 				translate(this.pos.x, this.pos.y);
