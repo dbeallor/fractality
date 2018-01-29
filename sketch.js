@@ -7,7 +7,6 @@ var canvas_dims = [720, 520];
 var screen_bounds;
 
 var grid;
-var images_loaded = 0;
 var center;
 
 // Zoom and drag
@@ -80,27 +79,25 @@ function setup() {
 }
 
 function loadImages(){
-	if (images_loaded == 0){
-		for (var i = 0; i < samples.length; i++){
-			loadImageWithID("snapshots/" + samples[i] + ".png", i, function(id, img) {
-				windows[5].images[id] = img; 
-			});
-		}
-
-		for (var i = 0; i < filter_browser.num_overlays; i++){
-			loadImageWithID("filter/overlays/overlay" + i + ".png", i, function(id, img) {
-				filter_browser.overlay_images[id] = img;
-			});
-		}
-
-		loadImage("intro.png", function(img){
-			windows[6].image = img;
-		});
-		
-		loadImage("ad.jpg", function(img){
-			ad = img;
+	for (var i = 0; i < samples.length; i++){
+		loadImageWithID("snapshots/" + samples[i] + ".png", i, function(id, img) {
+			windows[5].images[id] = img; 
 		});
 	}
+
+	for (var i = 0; i < filter_browser.num_overlays; i++){
+		loadImageWithID("filter/overlays/overlay" + i + ".png", i, function(id, img) {
+			filter_browser.overlay_images[id] = img;
+		});
+	}
+
+	loadImage("intro.png", function(img){
+		windows[6].image = img;
+	});
+	
+	loadImage("ad.jpg", function(img){
+		ad = img;
+	});
 }
 
 function checkIfFinished(){
@@ -224,8 +221,6 @@ function draw() {
 function styleCursor(){
 	if (fractal.maxing_out || fractal.fractalizing)
 		canvas.style.cursor = 'wait';
-	else if (windows[6].visible && withinBounds(mouseX, mouseY, windows[6].ad_bounds))
-		canvas.style.cursor = 'pointer';
 	else if (onScreen() && noOpenWindows() && menu_bar.folderIsOpen() < 0 && drag_mode == 0 && fractal.idle())
 		canvas.style.cursor = 'move';
 	else 

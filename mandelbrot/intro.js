@@ -24,6 +24,7 @@ function Intro(){
 		this.window.addButton(this.button_labels[0], this.pos.x - this.button_offsetX                          , this.pos.y + this.button_offsetY, this.button_width, this.button_height, startTutorial);
 		this.window.addButton(this.button_labels[1], this.pos.x - this.button_offsetX +     this.button_gap, this.pos.y + this.button_offsetY, this.button_width, this.button_height, closeWindows);
 		this.window.exitable = false;
+
 		var ratio = ad.width / ad.height;
 		var h = this.height * 0.2;
 		var w = h * ratio;
@@ -133,5 +134,7 @@ function Intro(){
 		imageMode(CENTER);
 		image(ad, x, y, w, h);
 		pop();
+		if (withinBounds(mouseX, mouseY, this.ad_bounds))
+			canvas.style.cursor = 'pointer';
 	}
 }

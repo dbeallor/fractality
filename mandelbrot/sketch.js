@@ -27,91 +27,123 @@ var undoing;
 var workers;
 var sections_refreshed;
 var chunks;
+var finished_loading = false;
+var loading_animation;
 
 // =======================================================================================================
-// ==PRELOAD AND SETUP
+// ==SETUP
 // =======================================================================================================
-function preload(){
-	background_image = loadImage("background.png");
-	intro_image = loadImage("intro.jpg");
-
-	ad = loadImage("ad.png");
-
-	fb_share_button = document.getElementById("fb_share_button");
-	fb_share_button.style.display = "none";
-}
-
 function setup() {
 	createCanvas(windowWidth, windowHeight);
-	colorMode(RGB);
+	if (!detectMobile()){
+		colorMode(RGB);
 
-	initializeMenuBar();
+		initializeMenuBar();
 
-	screen_bounds = [0, windowWidth, menu_bar.height, windowHeight];
+		screen_bounds = [0, windowWidth, menu_bar.height, windowHeight];
 
-	center = [windowWidth / 2, menu_bar.height + (windowHeight - menu_bar.height) / 2];
+		center = [windowWidth / 2, menu_bar.height + (windowHeight - menu_bar.height) / 2];
 
-	current_graphic = 0;
-	prev_graphic = 0;
+		current_graphic = 0;
+		prev_graphic = 0;
 
-	graphics = [];
+		graphics = [];
 
-	graphics[0] = createGraphics(600, 400);
-	graphics[0].pixelDensity(1);
+		graphics[0] = createGraphics(600, 400);
+		graphics[0].pixelDensity(1);
 
-	graphics[1] = createGraphics(900, 600);
-	graphics[1].pixelDensity(1);
+		graphics[1] = createGraphics(900, 600);
+		graphics[1].pixelDensity(1);
 
-	graphics[2] = createGraphics(1500, 1000);
-	graphics[2].pixelDensity(1);
+		graphics[2] = createGraphics(1500, 1000);
+		graphics[2].pixelDensity(1);
 
-	resolution_change = false;
+		resolution_change = false;
 
-	// var h = 1 * windowHeight;
-	var h = 0.8 * windowHeight;
-	var w = (3.0 / 2) * h;
-	graphic_bounds = [windowWidth / 2 - w / 2, 
-					  windowWidth / 2 + w / 2,
-					  windowHeight / 2 + menu_bar.height / 2 - h / 2, 
-				      windowHeight / 2 + menu_bar.height / 2 + h / 2];
+		// var h = 1 * windowHeight;
+		var h = 0.8 * windowHeight;
+		var w = (3.0 / 2) * h;
+		graphic_bounds = [windowWidth / 2 - w / 2, 
+						  windowWidth / 2 + w / 2,
+						  windowHeight / 2 + menu_bar.height / 2 - h / 2, 
+					      windowHeight / 2 + menu_bar.height / 2 + h / 2];
 
-	y_range = [-1, 1];
-	x_range = [-2, 1];
+		y_range = [-1, 1];
+		x_range = [-2, 1];
 
-	zoom_stack = [];
+		zoom_stack = [];
 
-	save_file_name = '';
+		save_file_name = '';
 
-	ready = false;
+		ready = false;
 
-	initializeWindows();
+		initializeWindows();
 
-	refresh = true;
-	setTimeout(refreshDrawing, 100);
-	reframe = false;
+		loadImages();
 
-	tutorial = new Tutorial();
-	tutorial.initialize();
-	// tutorial.open();
+		refresh = true;
+		setTimeout(refreshDrawing, 100);
+		reframe = false;
 
-	undoing = false;
+		tutorial = new Tutorial();
+		tutorial.initialize();
+		// tutorial.open();
 
+		undoing = false;
+
+		loading_animation = new LoadingAnimation();
+
+		initializeFBButton();
+
+		screen_bounds = [0, windowWidth, menu_bar.height, windowHeight];
+
+		workers = [];
+		for (var i = 0; i < navigator.hardwareConcurrency; i++){
+			workers[i] = new Worker('mandelbrotworker.js');
+			workers[i].addEventListener('message', function(e){
+				sectionRefreshed(e.data.work, e.data.start, e.data.stop, e.data.chunk);
+			}, false);
+		}
+	}
+}
+
+function loadImages(){	
+	loadImage("background.png", function (img){
+		background_image = img;
+	});
+
+	loadImage("intro.jpg", function (img){
+		windows[2].image = img;
+	});
+
+	loadImage("ad.png", function(img){
+		ad = img;
+	});
+}
+
+function checkIfFinished(){
+	if (typeof(background_image) == 'undefined')
+		return false;
+
+	if (typeof(windows[2].image) == 'undefined')
+		return false;
+
+	if (typeof(ad) == 'undefined')
+		return false;
+
+	windows[2].initialize();
+	windows[2].open();
+	finished_loading = true;
+}
+
+function initializeFBButton(){
+	fb_share_button = document.getElementById("fb_share_button");
+	fb_share_button.style.display = "none";
 	fb_share_button.style.width = 30;
 	fb_share_button.style.height = 10;
 	fb_share_button.style.position = "absolute";
     fb_share_button.style.right = "80px";
     fb_share_button.style.top = "1px";
-    fb_share_button.style.display = "block";
-
-	screen_bounds = [0, windowWidth, menu_bar.height, windowHeight];
-
-	workers = [];
-	for (var i = 0; i < navigator.hardwareConcurrency; i++){
-		workers[i] = new Worker('mandelbrotworker.js');
-		workers[i].addEventListener('message', function(e){
-			sectionRefreshed(e.data.work, e.data.start, e.data.stop, e.data.chunk);
-		}, false);
-	}
 }
 
 function initializeWindows(){
@@ -126,8 +158,6 @@ function initializeWindows(){
 	windows = append(windows, screenshot_dialog);
 
 	var intro = new Intro();
-	intro.initialize();
-	intro.open();
 	windows = append(windows, intro);
 }
 
@@ -135,44 +165,56 @@ function initializeWindows(){
 // ==DRAW
 // =======================================================================================================
 function draw() {
-	styleCursor();
+	if (!detectMobile()){
+		if (!finished_loading)
+			checkIfFinished();
+		if (finished_loading){
+			styleCursor();
 
-	background(0);
-	imageMode(CENTER);
-	var ratio = background_image.width / background_image.height;
-	image(background_image, windowWidth / 2, windowHeight / 2 + menu_bar.height / 2, (windowHeight - menu_bar.height) * ratio, windowHeight - menu_bar.height);
-	
+			background(0);
+			imageMode(CENTER);
+			var ratio = background_image.width / background_image.height;
+			image(background_image, windowWidth / 2, windowHeight / 2 + menu_bar.height / 2, (windowHeight - menu_bar.height) * ratio, windowHeight - menu_bar.height);
+			
 
-	// if (!(tutorial.current_window == 0 && tutorial.visible)){
-		theaterMode();
-		drawFrame();
-		image(resolution_change ? graphics[prev_graphic] : graphics[current_graphic], windowWidth / 2, windowHeight / 2 + menu_bar.height / 2, 
-			  graphic_bounds[1] - graphic_bounds[0], 
-			  graphic_bounds[3] - graphic_bounds[2]);
-	// }
+			// if (!(tutorial.current_window == 0 && tutorial.visible)){
+				theaterMode();
+				drawFrame();
+				image(resolution_change ? graphics[prev_graphic] : graphics[current_graphic], windowWidth / 2, windowHeight / 2 + menu_bar.height / 2, 
+					  graphic_bounds[1] - graphic_bounds[0], 
+					  graphic_bounds[3] - graphic_bounds[2]);
+			// }
 
-	if (mouseIsPressed && okayToZoom()){
-		c2 = [mouseX, mouseY];
-		push();
-		noFill();
-		stroke(255, 0, 0);
-		strokeWeight(2);
-		rectMode(CORNERS);
-		rect(c1[0], c1[1], c2[0], c2[1]);
-		pop();
+			if (mouseIsPressed && okayToZoom()){
+				c2 = [mouseX, mouseY];
+				push();
+				noFill();
+				stroke(255, 0, 0);
+				strokeWeight(2);
+				rectMode(CORNERS);
+				rect(c1[0], c1[1], c2[0], c2[1]);
+				pop();
+			}
+
+			showWindows();
+
+			tutorial.show();
+
+			if (!mouseIsPressed && !keyIsPressed)
+				ready = true;
+
+			menu_bar.show();
+
+			// fill(255);
+			// text(refresh, 50, 50);
+		}
+		else{
+			fb_share_button.visible = false;
+			loading_animation.show();
+		}
 	}
-
-	showWindows();
-
-	tutorial.show();
-
-	if (!mouseIsPressed && !keyIsPressed)
-		ready = true;
-
-	menu_bar.show();
-
-	// fill(255);
-	// text(refresh, 50, 50);
+	else
+		showMobileMessage();
 }
 
 function drawFrame(){
@@ -194,8 +236,6 @@ function drawFrame(){
 function styleCursor(){
 	if (refresh)
 		canvas.style.cursor = "wait";
-	else if (withinBounds(mouseX, mouseY, windows[2].ad_bounds) && windows[2].visible)
-		canvas.style.cursor = "pointer";
 	else
 		canvas.style.cursor = "auto";
 }
@@ -572,4 +612,30 @@ function theaterMode(){
 		noStroke();
 		rect(screen_bounds[0], screen_bounds[2], screen_bounds[1] - screen_bounds[0], screen_bounds[3] - screen_bounds[2]);
 	pop();
+}
+
+// =======================================================================================================
+// ==Mobile Detection
+// =======================================================================================================
+function detectMobile() { 
+	if (navigator.userAgent.match(/Android/i)
+		|| navigator.userAgent.match(/webOS/i)
+		|| navigator.userAgent.match(/iPhone/i)
+		|| navigator.userAgent.match(/iPad/i)
+		|| navigator.userAgent.match(/iPod/i)
+		|| navigator.userAgent.match(/BlackBerry/i)
+		|| navigator.userAgent.match(/Windows Phone/i)
+	)
+		return true;
+	else
+		return false;
+}
+
+function showMobileMessage() {
+	background(51);
+	fill(200);
+	noStroke();
+	textAlign(CENTER, CENTER);
+	textSize(36);
+	text("Sorry, this site is\nnot yet mobile friendly.\n\nVisit fractality.me on your desktop!", windowWidth / 2, windowHeight / 2);
 }

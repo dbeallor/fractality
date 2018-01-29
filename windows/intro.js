@@ -133,5 +133,7 @@ function Intro(){
 		imageMode(CENTER);
 		image(ad, x, y, w, h);
 		pop();
+		if (withinBounds(mouseX, mouseY, this.ad_bounds))
+			canvas.style.cursor = 'pointer';
 	}
 }
