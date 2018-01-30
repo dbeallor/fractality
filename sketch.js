@@ -1,6 +1,8 @@
 // =======================================================================================================
 // ==GLOBALS
 // =======================================================================================================
+var first_load = true;
+
 // Canvas and screen (canvas excluding menubar)
 var canv;
 var canvas_dims = [720, 520];
@@ -27,6 +29,8 @@ var fb_share_button;
 var save_file_name;
 var mandelbrot;
 var ad;
+var check_icon;
+var x_icon;
 
 var filter_browser;
 var finished_loading = false;
@@ -56,9 +60,11 @@ function setup() {
 
 		save_file_name = '';
 
-		filter_browser = new FilterBrowser();
+		if (first_load)
+			filter_browser = new FilterBrowser();
 
-		initializeWindows();
+		if (first_load)
+			initializeWindows();
 
 		ready = false;
 
@@ -74,7 +80,10 @@ function setup() {
 
 		initializeFBButton();
 
-		loadImages();
+		if (first_load)
+			loadImages();
+
+		first_load = false;
 	}	
 }
 
@@ -114,8 +123,10 @@ function checkIfFinished(){
 
 	if (typeof(ad) == 'undefined')
 		return false;
-
+	
+	// filter_browser.open();
 	finished_loading = true;
+	filter_browser.initialize();
 }
 
 function initializeFBButton(){
@@ -131,28 +142,28 @@ function initializeFBButton(){
 function initializeWindows(){
 	windows = [];
 
-	var save_dialog = new SaveDialogBox("Download as .txt file...", grid.pos.x, grid.pos.y, 250, 80, ".txt", saveSeed, updateSaveFileName);
+	var save_dialog = new SaveDialogBox("Download as .txt file...", center[0], center[1], 250, 80, ".txt", saveSeed, updateSaveFileName);
 	save_dialog.initialize();
 	windows = append(windows, save_dialog);
 
-	var screenshot_dialog = new SaveDialogBox("Capture Screenshot...", grid.pos.x, grid.pos.y, 250, 80, ".png", saveScreenshot, updateSaveFileName);
+	var screenshot_dialog = new SaveDialogBox("Capture Screenshot...", center[0], center[1], 250, 80, ".png", saveScreenshot, updateSaveFileName);
 	screenshot_dialog.initialize();
 	windows = append(windows, screenshot_dialog);
 
-	var load_dialog = new LoadDialogBox("Open File...", grid.pos.x, grid.pos.y, 250, 120, handleFile, highlightDropArea, unhighlightDropArea);
+	var load_dialog = new LoadDialogBox("Open File...", center[0], center[1], 250, 120, handleFile, highlightDropArea, unhighlightDropArea);
 	load_dialog.initialize();
 	windows = append(windows, load_dialog);
 
-	var color_dialog = new ColorDialogBox("Customize Color Scheme", grid.pos.x, grid.pos.y, 250, 110);
+	var color_dialog = new ColorDialogBox("Customize Color Scheme", center[0], center[1], 250, 110);
 	color_dialog.initialize();
 	windows = append(windows, color_dialog);
 
 	var message = "Are you sure you want to leave?\nAll unsaved data will be lost.";
-	var new_fractal_warning_box = new WarningBox(grid.pos.x, grid.pos.y, 220, 120, message, leave, closeWindows);
+	var new_fractal_warning_box = new WarningBox(center[0], center[1], 220, 120, message, leave, closeWindows);
 	windows = append(windows, new_fractal_warning_box);
 
 	var dims = galleryDims();
-	var gallery = new SlideViewer("Sample Gallery", grid.pos.x, grid.pos.y, dims[0], dims[1], "Open", loadSample);
+	var gallery = new SlideViewer("Sample Gallery", center[0], center[1], dims[0], dims[1], "Open", loadSample);
 	windows = append(windows, gallery);
 
 	var intro = new Intro();
@@ -162,9 +173,9 @@ function initializeWindows(){
 }
 
 function galleryDims(){
-	var h = 0.9 * windowHeight;
+	var h = 0.9 * screen_height;
 	var ratio = 1.4;
-	var w = constrain(h * ratio, 0, 0.9 * windowWidth);
+	var w = constrain(h * ratio, 0, 0.9 * screen_width);
 	return [w, h];
 }
 
@@ -185,12 +196,12 @@ function draw() {
 			if (fractal.creating_seed || fractal.creating_frame)
 				grid.show();
 
-			// filter_browser.show();
-
 			fractal.show();
 
-			if (fractal.fractalizing)
-				load_bar.show();
+			filter_browser.show();
+
+			// if (fractal.fractalizing)
+			// 	load_bar.show();
 
 			dragTranslateShape();
 			dragRotateShape();
@@ -241,15 +252,17 @@ function windowResized() {
 
 		menu_bar.resize(windowWidth);
 
+		filter_browser.resize();
+
 		var type = grid.type;
-		grid = new Grid(windowWidth / 2, windowHeight / 2 + menu_bar.height / 2, max(windowWidth, windowHeight));
+		grid = new Grid(center[0], center[1], max(screen_width, screen_height));
 		grid.setType(type);
 
 		var dims = galleryDims();
 		windows[5].resize(dims[0], dims[1]);
 		windows[6].resize();
 		for (var i = 0; i < windows.length; i++)
-			windows[i].setPosition(grid.pos.x, grid.pos.y);
+			windows[i].setPosition(center[0], center[1]);
 
 		var d = pixelDensity();
 		fractal.resize(d * windowWidth, d * windowHeight);
@@ -275,6 +288,8 @@ function mousePressed(){
 		if (tutorial.visible)
 			tutorial.onClick();
 
+		filter_browser.onClick();
+
 		fractal.onClick();
 
 		// Menu bar mouse events
@@ -285,6 +300,9 @@ function mousePressed(){
 
 function keyPressed(){
 	if (!detectMobile()){
+		if (menu_bar.folderIsOpen() < 0 && noOpenWindows()){
+			filter_browser.onKeyPress();
+		}
 		menu_bar.onKeyPress();
 		if (noOpenWindows() && ready){
 			menu_bar.checkShortcuts();
@@ -300,6 +318,7 @@ function mouseWheel(event){
 			fractal.refreshRotationCenter();
 		if (!mouseIsPressed && fractal.idle() && noOpenWindows() && onScreen())
 			fractal.zoom(map(constrain(event.delta, -200, 200), -200, 200, 1.3, 0.7), zoom_mode == 0 ? [mouseX, mouseY] : [fractal.rotation_center.x, fractal.rotation_center.y]);
+		filter_browser.mouseWheel(event.delta);
 		return false;
 	}
 }
@@ -342,6 +361,7 @@ function initializeMenuBar(){
 	menu_bar.addButton("Center", "space", centerShape);
 	menu_bar.addButton("Rotate Left 90°", "L", rotateLeft90);
 	menu_bar.addButton("Rotate Right 90°", ";", rotateRight90);
+	menu_bar.addButton("Show Overlays", "U", toggleFilterBrowser);
 	menu_bar.addButton("View Seed", "V", viewSeed);
 	// menu_bar.checkButton("View Seed");
 
@@ -381,9 +401,9 @@ function refreshMenuBarButtons(){
 		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "View Seed", "Tutorial"]);
 	else
 		menu_bar.enableButtons(["Welcome Screen", "Sample Gallery", "Explore the Depths of the Mandelbrot Set!", "New Fractal", "Open File...", "Grow", 
-									// "Max Level Up", "Timed Level Up", 
-									"Download as txt file...", "Capture Screenshot...", "Redraw Seed", "Customize Color Scheme",   "Zoom In", "Zoom Out", "Center", "Rotate Left 90°", 
-									"Rotate Right 90°", "View Seed", "Drag Mode Rotate", "Drag Mode Translate", "Zoom Mode Mouse Centered", "Zoom Mode Fractal Centered", "Tutorial"]);
+								// "Max Level Up", "Timed Level Up", 
+								"Download as txt file...", "Capture Screenshot...", "Redraw Seed", "Customize Color Scheme",   "Zoom In", "Zoom Out", "Center", "Rotate Left 90°", 
+								"Rotate Right 90°", "Show Overlays", "View Seed", "Drag Mode Rotate", "Drag Mode Translate", "Zoom Mode Mouse Centered", "Zoom Mode Fractal Centered", "Tutorial"]);
 }
 
 function mouseOnMenuBar(){
@@ -411,12 +431,20 @@ function leave(){
 		window.location.href = 'http://fractality.me/mandelbrot'
 	setup();
 	closeWindows();
+	filter_browser.drawer_handle.hide();
 }
 
 function viewSeed(){
 	fractal.viewing_seed ? fractal.viewFractal() : fractal.viewSeed();
 	fractal.viewing_seed ? menu_bar.checkButton("View Seed") : menu_bar.uncheckButton("View Seed");
 	refreshMenuBarButtons();
+	ready = false;
+}
+
+function toggleFilterBrowser(){
+	closeWindows();
+	filter_browser.visible ? filter_browser.close() : filter_browser.open();
+	filter_browser.visible ? menu_bar.checkButton("Show Overlays") : menu_bar.uncheckButton("Show Overlays");
 	ready = false;
 }
 
@@ -447,7 +475,7 @@ function theaterMode(){
 		resetMatrix();
 		fill(0, 150);
 		noStroke();
-		rect(screen_bounds[0], screen_bounds[2], screen_bounds[1] - screen_bounds[0], screen_bounds[3] - screen_bounds[2]);
+		rect(0, menu_bar.height, windowWidth, screen_height);
 	pop();
 }
 
@@ -637,9 +665,9 @@ function handleFile(file){
 }
 
 function loadSeed(loaded_data){
-	print(loaded_data)
-	windows[2].upload_button.remove();
-	windows[2].drop_area.remove();
+	// print(loaded_data)
+	// windows[2].upload_button.remove();
+	// windows[2].drop_area.remove();
 
 	setup();
 	fractal.creating_seed = false;
@@ -696,6 +724,7 @@ function loadSeed(loaded_data){
 	fractal.center();
 	fractal.scaleColors();
 	refreshMenuBarButtons();
+	filter_browser.drawer_handle.makeVisible();
 	closeWindows();
 }
 

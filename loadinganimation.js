@@ -16,19 +16,19 @@ function LoadingAnimation(){
 			fill(255);
 			noStroke();
 			textFont("Arial");
-			textSize(64);
-			text("Fractality", windowWidth / 2, windowHeight / 2);
-			textSize(24);
-			text("Loading" + this.dots, windowWidth / 2, windowHeight / 2 + windowHeight * 0.29);
-			this.dot_counter = ((this.dot_counter + 1) % this.max);
-			if (this.dot_counter == 0)
-				this.dots = "...";
-			if (this.dot_counter == this.max / 4 - 1)
-				this.dots = "";
-			if (this.dot_counter == this.max / 2 - 1)
-				this.dots = ".";	
-			if (this.dot_counter == 3 * this.max / 4 - 1)
-				this.dots = "..";
+			textSize(92);
+			text("Fractality", windowWidth / 2, windowHeight / 2 - windowHeight * 0.05);
+			textSize(20);
+			text("Loading for your convenience" + this.dots, windowWidth / 2, windowHeight / 2 + windowHeight * 0.1);
+			// this.dot_counter = ((this.dot_counter + 1) % this.max);
+			// if (this.dot_counter == 0)
+			// 	this.dots = "...";
+			// if (this.dot_counter == this.max / 4 - 1)
+			// 	this.dots = "";
+			// if (this.dot_counter == this.max / 2 - 1)
+			// 	this.dots = ".";	
+			// if (this.dot_counter == 3 * this.max / 4 - 1)
+			// 	this.dots = "..";
 		pop();
 	}
 }

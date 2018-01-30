@@ -81,6 +81,8 @@ function Tutorial(){
 
 	this.nextWindow = function(){
 		this.windows[this.current_window].close();
+		if (this.current_window == 2)
+			refreshMenubarButtons();
 		this.current_window = (this.current_window + 1) % this.windows.length;
 		this.windows[this.current_window].open();
 	}

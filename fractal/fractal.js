@@ -506,6 +506,7 @@ function Fractal(nodes, edges){
 		this.refreshRotationCenter();
 		this.orienting_frame = false;
 		refreshMenuBarButtons();
+		filter_browser.drawer_handle.makeVisible();
 		this.edges_drawn = false;
 	}
 

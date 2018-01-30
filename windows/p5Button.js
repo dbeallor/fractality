@@ -10,11 +10,12 @@ function p5Button(label, x, y, width, height, listener){
 	this.bounds = [this.pos.x - this.width / 2, this.pos.x + this.width / 2, this.pos.y - this.height / 2, this.pos.y + this.height / 2];
 	this.visible = false;
 	this.label = label;
+	this.text_size = 12;
 
 	this.show = function(){
 		if (this.visible){
 			push();
-				textSize(12);
+				textSize(this.text_size);
 				if (this.mouseOver()){
 					canvas.style.cursor = 'pointer';
 					fill(this.highlight)
@@ -69,14 +70,18 @@ function p5Button(label, x, y, width, height, listener){
 		this.visible = false;
 	}
 
-	this.onClick = function(){
+	this.onClick = function(stay_open){
 		if (this.mouseOver()){
 			this.listener();
-			this.close();
+			stay_open || this.close();
 		}
 	}
 
 	this.setPosition = function(x, y){
 		this.pos.set(x, y);
+	}
+
+	this.setTextSize = function(ts){
+		this.text_size = ts;
 	}
 }

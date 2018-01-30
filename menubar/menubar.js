@@ -31,6 +31,8 @@ function MenuBar(){
 
 	this.show = function(){
 		push();
+			if (this.folderIsOpen() >= 0)
+				canvas.style.cursor = 'auto';
 			stroke(100);
 			fill(this.fill);
 			rect(this.pos.x, this.pos.y - 1, this.width, this.height + 1);

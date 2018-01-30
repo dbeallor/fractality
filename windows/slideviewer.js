@@ -44,9 +44,9 @@ function SlideViewer(title, x, y, width, height, button_title, listener){
 				translate(this.pos.x - this.width / 2, this.pos.y - this.height / 2 + this.window.header_height);
 				rect(0, 0, this.graphics.width / d, this.graphics.height / d);
 
-				if (this.leftMouseOver())
+				if (this.leftMouseOver() && menu_bar.folderIsOpen() < 0)
 					this.showLeftRect();
-				if (this.rightMouseOver())
+				if (this.rightMouseOver() && menu_bar.folderIsOpen() < 0)
 					this.showRightRect();
 			pop();
 		}

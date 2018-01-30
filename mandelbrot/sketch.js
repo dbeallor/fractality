@@ -375,6 +375,10 @@ function sectionRefreshed(work, start, stop, chunk){
 function doneRefreshing(){
 	canvas.style.cursor = "auto";
 	refresh = false;
+
+	if (resolution_change && tutorial.current_window == 2 && tutorial.visible)
+		nextWindow();
+
 	resolution_change = false;
 
 	var new_pixels = [];

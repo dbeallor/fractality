@@ -1,15 +1,15 @@
 function Overlay(img, id){
 	this.id = id;
 	this.image = img;
-	this.opacity = 0.5;
 	this.workers = [];
 	this.chunks = [];
 	this.chunks_complete = 0;
 
 	this.initialize = function(){
+		print(filter_browser.opacity)
 		this.image.loadPixels();
 		for (var i = 3; i < this.image.pixels.length; i += 4)
-			this.image.pixels[i] = floor(map(this.opacity, 0, 1, 0, 255));
+			this.image.pixels[i] = floor(map(filter_browser.opacity, 0, 1, 0, 255));
 		this.image.updatePixels();
 		// for (var i = 0; i < navigator.hardwareConcurrency; i++){
 		// 	this.workers[i] = new Worker('filter/overlay_worker.js');
